@@ -1,19 +1,19 @@
-# Domain paketleri
+# Domain packs
 
-PMI'nin çekirdeği domain-bağımsızdır. Profil şemasında tek bir sektör kelimesi yoktur ve bu bir test ile kontrol edilir (`tests/test_profiling.py`). Sektör bilgisi **domain paketleri** ile eklenir.
+The PMI core is domain-agnostic. The profile schema contains no industry vocabulary, and a test enforces this (`tests/test_profiling.py`). Industry knowledge is added through **domain packs**.
 
-Bir paketin içeriği:
+What a pack contains:
 
-| Parça | Yer | Görev |
+| Part | Location | Role |
 |---|---|---|
-| Agent bilgisi | `claude_config/skills/domain-<ad>/` | Kanal ve iş modeli, profil eşlemesi, sektöre özgü hipotez aileleri |
-| Paket notları ve tasarım | `domain_packs/<ad>/README.md` | Kapsam ve sonuç simülasyonu tasarımı |
-| Benchmark | `examples/make_examples.py` içinde bir proje | Gizli cevap anahtarlı, gerçek kusurlar ve tuzaklar içeren sentetik proje |
-| (Aşama 5) Sonuç modeli | `src/pmi/domains/<ad>/` | Tahmin hatasının iş metriğine dönüşümü |
+| Agent knowledge | `claude_config/skills/domain-<name>/` | Channel and business model, profile mapping, industry-specific hypothesis families |
+| Pack notes and design | `domain_packs/<name>/README.md` | Scope and consequence-simulation design |
+| Benchmark | a project in `examples/make_examples.py` | Synthetic project with a hidden answer key, real defects and decoys |
+| (Stage 5) Consequence model | `src/pmi/domains/<name>/` | Translating forecast error into business metrics |
 
-Kurallar:
-1. Paket ancak profil onaylandıktan sonra ve insan teyidiyle devreye girer. Sütun adından tahmin edilmez.
-2. Paket çekirdek kuralları (ön-kayıt, statü tavanları, insan kapıları) gevşetemez.
-3. Paket, çekirdeğe sektör kelimesi ekleyemez.
+Rules:
+1. A pack is activated only after the profile is confirmed and a human agrees. It is never inferred from column names.
+2. A pack cannot relax core rules (pre-registration, status caps, human gates).
+3. A pack cannot add industry words to the core.
 
-Mevcut paketler: `otc_channel`
+Available packs: `otc_channel`

@@ -1,39 +1,39 @@
 ---
 name: evidence-protocol
-description: PMI kanıt statüleri (Verified, Simulated, Suspected, Inconclusive, Rejected), pmi verify'ın statü kuralları, statü tavanları, kanıt bütünlüğü ve bulgular hakkında hangi dilin kullanılabileceği. Verify fazında ve herhangi bir bulguyu kullanıcıya anlatmadan önce kullan.
+description: PMI evidence statuses (Verified, Simulated, Suspected, Inconclusive, Rejected), pmi verify's status rules, status caps, evidence integrity, and which wording may be used about findings. Use in the Verify phase and before describing any finding to the user.
 ---
 
 # Evidence protocol
 
-## Statüyü kim belirler?
-Yalnızca `pmi verify H-xxx`. Ledger'a doğrudan yazmak engellidir. Yazılsa bile hash zinciri bunu yakalar (`pmi integrity`).
+## Who decides the status?
+Only `pmi verify H-xxx`. Writing to the ledger directly is blocked. Even if it were written, the hash chain catches it (`pmi integrity`).
 
-## pmi verify ne yapar?
-Hipotezin her tamamlanmış deneyi için:
-1. Artifact dosyaları kayıtlı sha256 değerleriyle eşleşiyor mu? Eşleşmiyorsa → inconclusive.
-2. Ön-kayıtlı kural kayıtlı sonuç üzerinde değerlendirilir → pass / fail / inconclusive.
-3. **Replikasyon:** check'ler yeni bir worker'da yeniden çalıştırılır ve sonuç birebir aynı olmalıdır. Model deneylerinde her metrik, kaydedilmiş tahminlerden **bağımsız bir implementasyonla** (sklearn/pandas) yeniden hesaplanır.
-4. **Tavan** uygulanır:
-   - check, veri/kod üzerinden → Verified
-   - check, adapter üzerinden → fidelity `confirmed` ise Verified, değilse Inconclusive
+## What pmi verify does
+For every completed experiment of the hypothesis:
+1. Do the artifact files match their recorded sha256? If not → inconclusive.
+2. The pre-registered rule is evaluated on the recorded result → pass / fail / inconclusive.
+3. **Replication:** checks are re-executed in a fresh worker and must give exactly the same result. For model experiments every metric is recomputed from the saved predictions with an **independent implementation** (sklearn/pandas).
+4. A **cap** is applied:
+   - check via data/code → Verified
+   - check via adapter → Verified if fidelity is `confirmed`, otherwise Inconclusive
    - amplify / ablation / `kind=sensitivity` → Simulated
    - surrogate → Simulated
-   - baseline gap → insan-onaylı adapter yoksa Inconclusive
-5. Birleştirme: pass ve fail birlikte varsa → Inconclusive (çelişki). Sadece pass varsa → en yüksek tavan. Sadece fail varsa → Rejected.
+   - baseline gap → Inconclusive without a human-confirmed adapter
+5. Combination: pass and fail together → Inconclusive (conflict). Only pass → the highest cap. Only fail → Rejected.
 
-## Bulgu kaydının zorunlu alanları
-Finding ID, problem açıklaması, kaynak dosya/satır, etkilenen veri, hipotez/mekanizma, test prosedürü (spec + kural), başlangıç ölçümü, deney ölçümü, kanıt dosyası, belirsizlik ve önerilen düzeltme. `pmi report` bunların hepsini ledger'dan üretir. Eksik alan raporda "—" olarak görünür, bu yüzden hipotezi kaydederken alanları doldur.
+## Mandatory fields of a finding record
+Finding ID, problem description, source file/line, affected data, hypothesis/mechanism, test procedure (spec + rule), baseline measurement, experiment measurement, evidence file, uncertainty and proposed fix. `pmi report` generates all of these from the ledger. A missing field appears as "—" in the report, so fill the fields when registering the hypothesis.
 
-## Dil kuralları
-| Yazabileceğin | Yazamayacağın |
+## Wording rules
+| You may write | You may not write |
 |---|---|
-| "H-002 doğrulandı (E-002): `units_next_wk` hedefin 1 dönem sonraki değerine birebir eşit." | "Model kesinlikle sızıntılı ve gerçek performansı çok düşük." (ölçülmedi) |
-| "Kontrollü deneyde (E-006, Simulated) promo bilgisi 2 dönem geciktiğinde MAE EAF=1.43." | "Üretimde promo gecikirse hata %43 artar." |
-| "H-004 test edildi, desteklenmedi (Rejected, E-004)." | H-004'ü rapordan çıkarmak |
-| "Belirsiz: adapter fidelity onaysız." | "Muhtemelen doğru." |
+| "H-002 verified (E-002): `units_next_wk` exactly equals the target's value one period later." | "The model is definitely leaky and its real performance is very low." (not measured) |
+| "In a controlled experiment (E-006, Simulated), MAE EAF=1.43 when promo information is delayed by 2 periods." | "If promo is delayed in production, error rises 43%." |
+| "H-004 tested, not supported (Rejected, E-004)." | Dropping H-004 from the report |
+| "Inconclusive: adapter fidelity unconfirmed." | "Probably true." |
 
-## Korelasyon ≠ nedensellik
-"X arttıkça hata artıyor" cümlesi ancak amplify ya da ablation gibi **müdahaleli** bir deneye dayanıyorsa "X'in büyütülmesi hatayı artırdı" diye yazılabilir. Gözlemsel bir ilişki asla "neden" diye sunulmaz.
+## Correlation ≠ causation
+"Error rises as X rises" can be written as "amplifying X increased the error" only if it rests on an **interventional** experiment such as amplify or ablation. An observational relationship is never presented as a cause.
 
-## Bütünlük
-Her raporlamadan önce `pmi integrity` çalıştır. `ok:false` ise yayınlama, insana bildir.
+## Integrity
+Run `pmi integrity` before every report. If `ok:false`, do not publish; tell the human.

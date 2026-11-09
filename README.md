@@ -4,35 +4,42 @@
 
 # ml-skeptic — Paranoid ML Investigator
 
-ML/AI projelerini bağımsız denetleyen, şüpheci bir agent ve onun deterministik harness'ı.
+A skeptical agent that independently audits ML/AI projects, plus the deterministic harness behind it.
 
-- **Agent (Katman A):** Claude Code. Karakteri `CLAUDE.md`, yöntemleri `.claude/skills/` ve rolleri `.claude/agents/` altında tanımlı.
-- **Harness (Katman B/C):** `pmi` Python paketi. Ölçer, kaydeder ve kanıt statüsünü belirler. Agent statü atayamaz.
+- **Agent (Layer A):** Claude Code. Its character is defined in `CLAUDE.md`, its methods in `claude_config/skills/`, its roles in `claude_config/agents/`.
+- **Harness (Layers B/C):** the `pmi` Python package. It measures, records, and decides evidence status. The agent cannot assign a status.
 
 > Assume nothing. Challenge everything. Amplify weaknesses. Verify the evidence.
 
-## Kurulum (Windows / PowerShell)
+## What it does
+- **Learns the project, assumes nothing:** target, time axis, entity keys, evaluation protocol and metric are discovered from code (AST) and data, cited as file:line, and confirmed by a human before use.
+- **Hunts leakage:** future-target features, shuffled splits on temporal data, preprocessing fitted before the split, train/test duplicates.
+- **Amplifies failure conditions, not errors:** missing data, outliers, distribution shift and stale features are scaled 1× → 2× → 3× → 5× of the measured base condition; reports the Error Amplification Factor and the threshold where the model becomes unacceptable.
+- **Lets only evidence count:** pre-registered decision rules, a tamper-evident hash-chained ledger, independent re-computation of every metric, and status caps (`Verified` / `Simulated` / `Suspected` / `Inconclusive` / `Rejected`).
+- **Audits itself:** a claim checker catches non-existent file:line references, unrun experiments, wrong numbers and overstated statuses in the agent's own write-ups.
+
+## Installation (Windows / PowerShell)
 ```powershell
 git clone https://github.com/Emirarkn/ml-skeptic.git
 cd ml-skeptic
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev,excel]"
-python setup_claude_config.py   # claude_config/ -> .claude/ (subagent, skill, hook, permission)
-python -m pytest -q             # 27 test geçmeli
+python setup_claude_config.py   # claude_config/ -> .claude/ (subagents, skills, hooks, permissions)
+python -m pytest -q             # 27 tests should pass
 ```
-Claude Code'u bu klasörde, venv aktifken başlatın (`claude`). Bu sayede `pmi` komutu ve hook'lardaki `python` aynı ortamı kullanır.
+Start Claude Code in this folder with the venv active (`claude`), so the `pmi` command and the `python` used by hooks share the same environment.
 
-> `claude_config/` agent konfigürasyonunun kaynağıdır. Claude Code ise bu dosyaları `.claude/` altından okur. `claude_config/` içinde bir şeyi değiştirdiğinizde `python setup_claude_config.py --force` ile `.claude/` klasörünü güncelleyin.
+> `claude_config/` is the source of the agent configuration; Claude Code reads it from `.claude/`. After changing something in `claude_config/`, refresh `.claude/` with `python setup_claude_config.py --force`.
 
-## Kullanım
-Claude Code içinde:
+## Usage
+Inside Claude Code:
 ```
-Şu projeyi denetle: C:\...\benim_projem. Hataları bul, kritik girdiler için 2× ve 3× stres testi uygula.
+Audit this project: C:\...\my_project. Find the bugs and run 2x and 3x stress tests on the critical inputs.
 ```
-Agent sırasıyla şunları yapar: `pmi init` (onay ister) → `pmi scan` → profil onay paketi (onay ister) → adapter → `pmi adapter validate` (onay ister) → `pmi baseline` → hipotezler → ön-kayıtlı deneyler → `pmi verify` → `pmi report` + `notes/findings.md` → `pmi check-claims`.
+The agent goes through: `pmi init` (asks for approval) → `pmi scan` → profile confirmation package (asks for approval) → adapter → `pmi adapter validate` (asks for approval) → `pmi baseline` → hypotheses → pre-registered experiments → `pmi verify` → `pmi report` + `notes/findings.md` → `pmi check-claims`.
 
-Elle deneme:
+Manual try-out:
 ```powershell
 python examples\make_examples.py C:\temp\pmi_examples
 pmi init --target C:\temp\pmi_examples\retail_weekly
@@ -40,33 +47,36 @@ pmi scan
 pmi profile show
 ```
 
-## Uzmanlık: OTC kanal paketi
-Çekirdek her ML/AI projesinde çalışır. **OTC (reçetesiz ürün) / consumer health kanalı** için ek bir domain paketi gelir: `claude_config/skills/domain-otc-channel/` ve `domain_packs/otc_channel/`.
-- Üretici → depo → eczane → tüketici zinciri; sell-in, sell-out, stok kesintisi, kanal stoku, kampanya ve panel gecikmesi
-- 9 kanala özgü hata ailesi (vekil hedef, sansürlü talep, kanal yüklemesi, gecikmeli bilgi…) ve bunların pmi ile test yolları
-- Sentetik benchmark projesi (`examples/make_examples.py` → `otc_channel`)
-- Aşama 5 tasarımı: kanal sonuç simülasyonu (stok, kesinti, kayıp satış, servis seviyesi)
+## Specialisation: OTC channel pack
+The core works on any ML/AI project. An additional domain pack covers the **OTC (over-the-counter) / consumer health channel**: `claude_config/skills/domain-otc-channel/` and `domain_packs/otc_channel/`.
+- Manufacturer → wholesaler → pharmacy → consumer chain; sell-in, sell-out, stockouts, channel inventory, promotions and panel-data delay
+- 9 channel-specific failure families (proxy target, censored demand, channel loading, delayed information, …) and how to test them with pmi
+- Synthetic benchmark project (`examples/make_examples.py` → `otc_channel`)
+- Stage 5 design: channel consequence simulation (stock, stockouts, lost sales, service level)
 
-Paket yalnızca profil onaylandıktan sonra ve insan teyidiyle devreye girer. Bkz. `domain_packs/README.md`.
+The pack is activated only after the profile is confirmed and a human agrees. See `domain_packs/README.md`.
 
-**Gizlilik:** Repoda gerçek veri yoktur. Tüm örnek veriler kodla üretilen sentetik verilerdir. Denetlenen projeler `runs/` altına kopyalanır ve bu klasör git'e girmez (`.gitignore`).
+**Privacy:** The repository contains no real data. All example data is synthetic and generated by code. Audited projects are copied under `runs/`, which is never committed (`.gitignore`).
 
-## Dosya haritası
-| Yol | İçerik |
+## File map
+| Path | Contents |
 |---|---|
-| `CLAUDE.md` | Agent anayasası: karakter, mutlak kurallar, döngü, insan kapıları |
-| `claude_config/settings.json` → `.claude/` | Permission listesi (allow/ask/deny) ve hook tanımları |
-| `claude_config/hooks/` | `guard.py` (yazma koruması), `session_start.py` (kaldığı yerden devam) |
-| `claude_config/agents/` | 5 subagent: cartographer, skeptic, designer, verifier, claim-auditor |
-| `claude_config/skills/` | 8 skill: investigate, project-profiling, skeptical-hypotheses, experiment-design, failure-amplification, leakage-hunting, evidence-protocol, audit-reporting |
-| `setup_claude_config.py` | `claude_config/` → `.claude/` kurulumu |
-| `config/` | `policy.yaml` (bütçe, ağ, timeout, kanıt eşikleri), `amplification.yaml` |
+| `CLAUDE.md` | Agent constitution: character, hard rules, loop, human gates |
+| `claude_config/settings.json` → `.claude/` | Permission lists (allow/ask/deny) and hook definitions |
+| `claude_config/hooks/` | `guard.py` (write protection), `session_start.py` (resume where it left off) |
+| `claude_config/agents/` | 5 subagents: cartographer, skeptic, designer, verifier, claim-auditor |
+| `claude_config/skills/` | 9 skills: investigate, project-profiling, skeptical-hypotheses, experiment-design, failure-amplification, leakage-hunting, evidence-protocol, audit-reporting, domain-otc-channel |
+| `setup_claude_config.py` | Installs `claude_config/` → `.claude/` |
+| `config/` | `policy.yaml` (budget, network, timeout, evidence thresholds), `amplification.yaml` |
 | `src/pmi/` | Harness |
-| `tests/` | Aşama 1–4 kabul testleri |
-| `examples/` | Gizli cevap anahtarlı sentetik benchmark üreticisi (retail, churn, OTC kanal) |
-| `domain_packs/` | Sektör paketleri (`otc_channel`) |
-| `docs/` | Tasarım dokümanı, mimari eşleme, izin modeli, roadmap |
-| `runs/` | Her denetim (git'e girmez) |
+| `tests/` | Acceptance tests for stages 1–4 |
+| `examples/` | Synthetic benchmark generator with hidden answer keys (retail, churn, OTC channel) |
+| `domain_packs/` | Industry packs (`otc_channel`) |
+| `docs/` | Design document, architecture mapping, permission model, roadmap |
+| `runs/` | One folder per audit (not committed) |
 
-## Komutlar
+## Commands
 `pmi --help` · `pmi checks` · `pmi injectors` · `pmi status` · `pmi integrity`
+
+## Status
+Stages 1–4 of the roadmap (foundation, structural intelligence, hypothesis & evidence, amplification MVP) are implemented. Walk-forward backtesting, consequence simulation and repair/retest are next — see `docs/ROADMAP.md`.

@@ -1,48 +1,48 @@
 ---
 name: audit-reporting
-description: Denetim sonucunu kullanıcıya sunmak. pmi report (ölçüm raporu) ile notes/findings.md (agent yorumu) dosyalarını üretmek, claim-auditor ve pmi check-claims ile denetlemek, kapanış mesajını yazmak. Report fazında kullan.
+description: Present the audit result to the user. Generate pmi report (measurement report) and notes/findings.md (agent interpretation), audit them with claim-auditor and pmi check-claims, and write the closing message. Use in the Report phase.
 ---
 
 # Audit reporting
 
-## İki katman
-1. **`pmi report`** → `runs/<id>/report.md`. Tamamen ledger'dan üretilir. Ona dokunma, düzenleme engellidir.
-2. **`runs/<id>/notes/findings.md`** → senin yorumun: önem sırası, mekanizma açıklaması, iş etkisi tartışması ve sonraki adımlar.
+## Two layers
+1. **`pmi report`** → `runs/<id>/report.md`. Generated entirely from the ledger. Do not touch it; editing is blocked.
+2. **`runs/<id>/notes/findings.md`** → your interpretation: priority order, mechanism explanation, business-impact discussion and next steps.
 
-## findings.md şablonu
+## findings.md template
 ```markdown
-# Denetim yorumu — <proje>  (run <id>)
+# Audit interpretation — <project>  (run <id>)
 
-## Kısa cevap
-<Kullanıcının sorusuna 3–5 cümle. Her iddia H-/E- id'li.>
+## Short answer
+<3–5 sentences answering the user's question. Every claim with an H-/E- id.>
 
-## Değerlendirme geçerli mi?
-<Verified kusurlar; Rejected olanlar da "kontrol edildi, sorun yok" diye>
+## Is the evaluation valid?
+<Verified defects; Rejected ones too, as "checked, no problem">
 
-## En kritik bulgular
-1. H-xxx [Statü] — ne, neden önemli, kanıt (E-xxx), belirsizlik
+## Most critical findings
+1. H-xxx [Status] — what, why it matters, evidence (E-xxx), uncertainty
 
-## Dayanıklılık profili (Simulated)
-| Koşul | Taban | Seviye | EAF (E-xxx) | Eşik |
+## Robustness profile (Simulated)
+| Condition | Base | Level | EAF (E-xxx) | Threshold |
 
-## Test edilemeyenler / açık sorular
-<Suspected + Inconclusive + "test aracı yok" + insandan beklenen bilgiler>
+## Untested / open questions
+<Suspected + Inconclusive + "no test tool" + information expected from the human>
 
-## Önerilen düzeltmeler (test edilmedi)
-<--fix kayıtları; Aşama 6'da counterfactual ile test edilecek>
+## Proposed fixes (untested)
+<--fix records; to be tested with counterfactuals in stage 6>
 ```
 
-## Yazım kuralları
-- Her sayı kaydedilmiş bir sonuçtan gelir ve **aynı cümlede** E-id ile birlikte yazılır. Sayıları kayıttaki hassasiyete yuvarla.
-- "Doğrulandı" kelimesi yalnızca Verified statüsündeki H-id'lerle birlikte kullanılır.
-- "İyileşti", "düzeltildi" gibi ifadeler bir E-id olmadan yazılmaz. Aşama 6'ya kadar zaten yazılmamalı.
-- Dosya:satır referansı vereceksen, kopyada açıp doğruladığın satırı ver.
+## Writing rules
+- Every number comes from a recorded result and is written **in the same sentence** as its E-id. Round numbers to the recorded precision.
+- The word "verified" is used only together with H-ids whose status is Verified.
+- Words like "improved" or "fixed" are never written without an E-id. Until stage 6 they should not be written at all.
+- If you give a file:line reference, give one you opened and checked in the copy.
 
-## Denetim
-1. `pmi check-claims runs/<id>/notes/findings.md` → issue sayısı 0 olmalı.
-2. `claim-auditor` subagent'ı → otomatiğin kaçırdığı abartıları yakalar.
-3. P1–P2 Verified/Simulated bulgular için `evidence-verifier` subagent'ı.
+## Audit
+1. `pmi check-claims runs/<id>/notes/findings.md` → issue count must be 0.
+2. `claim-auditor` subagent → catches exaggerations the automatic check misses.
+3. `evidence-verifier` subagent for P1–P2 Verified/Simulated findings.
 4. `pmi integrity` → ok.
 
-## Kapanış mesajı
-Kısa tut: kısa cevap, en kritik 3 bulgu, rapor yolu ve insandan beklenen kararlar. Rapor içeriğini mesajda tekrar etme.
+## Closing message
+Keep it short: the short answer, the 3 most critical findings, the report path and the decisions expected from the human. Do not repeat the report content in the message.

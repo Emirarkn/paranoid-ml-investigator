@@ -21,8 +21,8 @@ def test_claim_checker(harness, projects, pmi):
         "--spec", '{"check":"target_proxy","data_via":"profile"}', "--rule", '{"type":"defect_found"}')
     pmi("experiment", "run", "E-001")
     notes = run_dir / "notes" / "n.md"
-    notes.write_text("H-001 doğrulandı.\nModel iyileşti.\ntrain.py:999 hatalı.\nKorelasyon 0.73 (E-001).\n"
-                     "H-009 önemli.\n", encoding="utf-8")
+    notes.write_text("H-001 is verified.\nThe model improved.\ntrain.py:999 is wrong.\nCorrelation 0.73 (E-001).\n"
+                     "H-009 matters.\n", encoding="utf-8")
     rc, out = pmi("check-claims", str(notes))
     issues = " | ".join(i["issue"] for i in out["issues"])
     assert rc == 1
@@ -32,7 +32,8 @@ def test_claim_checker(harness, projects, pmi):
     assert "number 0.73 not found" in issues
     assert "unknown id H-009" in issues
     pmi("verify", hid)
-    notes.write_text("H-001 doğrulandı (E-001); gelecek hedefle korelasyon 1.0, bkz. train.py:10.\n", encoding="utf-8")
+    notes.write_text("H-001 is verified (E-001); correlation with the future target is 1.0, see train.py:10.\n",
+                     encoding="utf-8")
     rc, out = pmi("check-claims", str(notes))
     assert rc == 0, out
 

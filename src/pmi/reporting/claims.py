@@ -3,10 +3,12 @@
 Checks (heuristic, conservative):
   * file:line references exist in the workspace copy and the line number is in range
   * H-xxx / E-xxx ids exist
-  * a sentence that says verified/doğrulandı/kanıtlandı about H-xxx requires that H to be Verified
+  * a sentence that says "verified"/"proven" about H-xxx requires that H to be Verified
   * a verification word with no H-id at all is an unanchored claim
   * numbers in a sentence that cites E-xxx must appear in that experiment's recorded result
-  * "improved / iyileşti" claims must cite an experiment
+  * "improved / fixed" claims must cite an experiment
+
+Wording lists are multilingual (English + Turkish) because the agent writes notes in the user's language.
 """
 from __future__ import annotations
 

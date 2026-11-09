@@ -1,26 +1,26 @@
-# Domain paketi: OTC kanal
+# Domain pack: OTC channel
 
-Reçetesiz ürünler (OTC) ve consumer health için bir uzmanlık katmanı: üretici → depo/distribütör → eczane/perakende → tüketici zincirindeki tahmin projelerini denetler.
+A specialisation layer for over-the-counter (OTC) and consumer health products: it audits forecasting projects along the manufacturer → wholesaler/distributor → pharmacy/retail → consumer chain.
 
-## Bugün içerdikleri (v0.1)
-- **Agent skill'i:** `claude_config/skills/domain-otc-channel/`. Kanal modeli, profil eşlemesi, 9 hata ailesi (O1–O9) ve bunların pmi ile test yolları.
-- **Benchmark:** `examples/make_examples.py` → `otc_channel` projesi. Aylık `yyyymm` dönem, ürün × depo paneli, sell-in/sell-out ve stok kesintisi işareti içerir. Gerçek kusurlar ve tuzaklar gömülüdür.
-- **Gerçek veri yok.** Paketteki her şey genel kanal bilgisi ve sentetik veridir. Hiçbir şirkete, markaya veya iç veriye dayanmaz.
+## Contents today (v0.1)
+- **Agent skill:** `claude_config/skills/domain-otc-channel/`. Channel model, profile mapping, 9 failure families (O1–O9) and how to test them with pmi.
+- **Benchmark:** `examples/make_examples.py` → `otc_channel` project. Monthly `yyyymm` periods, a product × wholesaler panel, sell-in/sell-out and a stockout flag, with real defects and decoys embedded.
+- **No real data.** Everything in this pack is general channel knowledge and synthetic data. It is not based on any company, brand or internal data.
 
-## Aşama 5 tasarımı: kanal sonuç simülasyonu
-Amaç: tahmin hatasının sonraki dönemlere ve kanala nasıl yayıldığını senaryo bazında göstermek. Örnek zincir: eksik forecast → eksik sell-in → depo stoku düşer → eczanede kesinti → gözlenen sell-out düşer → sonraki forecast yeniden düşük kalır.
+## Stage 5 design: channel consequence simulation
+Goal: show, scenario by scenario, how forecast error propagates to later periods and through the channel. Example chain: under-forecast → too little sell-in → wholesaler stock drops → pharmacy stockout → observed sell-out drops → the next forecast stays too low.
 
-Tasarım ilkeleri:
-1. **Parametreler öğrenilir, varsayılmaz.** Sipariş politikası, tedarik süresi, hedef stok günü, min sipariş ve maliyetler profilin yeni bir bölümüne (`consequence_params`) kanıtla ve insan onayıyla girer. Eksik parametre varsa simülasyon çalışmaz.
-2. **Üç senaryo** (tasarım dokümanı §6): A = müdahalesiz, B = amplified failure (pmi amplify sonuçlarını girdi olarak kullanır), C = düzeltilmiş sistem (Aşama 6 counterfactual çıktısı).
-3. **Talep belirsizliği:** tek sonuç yerine Monte Carlo aralıkları (talep senaryoları, seed'li).
-4. **Çıktılar:** kesinti dönemi sayısı, kayıp satış (aralık olarak), stok fazlası, stok tutma maliyeti, depolar arası yanlış tahsis, SKU bazında bias, servis seviyesi.
-5. **Statü:** tüm sonuçlar en fazla `Simulated` olabilir ve raporda "varsayıma bağlı senaryo" etiketi taşır.
-6. **Geri besleme döngüsü:** kesinti sırasında gözlenen sell-out, sonraki dönemin eğitim verisine sansürlü olarak girer. Simülatör bunu açıkça modeller (O2).
+Design principles:
+1. **Parameters are learned, not assumed.** Ordering policy, lead time, target days of cover, minimum order quantity and costs enter a new profile section (`consequence_params`) with evidence and human confirmation. If a parameter is missing, the simulation does not run.
+2. **Three scenarios** (design document §6): A = no intervention, B = amplified failure (uses pmi amplify results as input), C = corrected system (output of the stage 6 counterfactual).
+3. **Demand uncertainty:** Monte Carlo ranges instead of a single result (seeded demand scenarios).
+4. **Outputs:** number of stockout periods, lost sales (as a range), excess stock, holding cost, misallocation across wholesalers, bias per SKU, service level.
+5. **Status:** all results are at most `Simulated` and carry the label "scenario conditional on assumptions" in the report.
+6. **Feedback loop:** sell-out observed during a stockout enters the next period's training data as censored. The simulator models this explicitly (O2).
 
-## Yol haritası
-- [ ] `consequence_params` profil bölümü ve onay akışı
-- [ ] Depo-eczane iki kademeli stok simülatörü
-- [ ] Sansürlü talep injector'ü: stok kesintisi süresini ve etkilenen entity sayısını büyütür
-- [ ] Segment metrikleri (yeni ürün, sezon, depo)
-- [ ] Walk-forward backtest (1/3/6/12 dönem ufku)
+## Roadmap
+- [ ] `consequence_params` profile section and confirmation flow
+- [ ] Two-tier wholesaler-pharmacy stock simulator
+- [ ] Censored-demand injector: scales stockout duration and the number of affected entities
+- [ ] Segment metrics (new products, season, wholesaler)
+- [ ] Walk-forward backtest (1/3/6/12 period horizons)

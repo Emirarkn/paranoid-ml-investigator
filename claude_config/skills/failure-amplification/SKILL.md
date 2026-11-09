@@ -1,43 +1,43 @@
 ---
 name: failure-amplification
-description: Bir problemin koşulunu (hatayı değil) kontrollü biçimde 1×→2×→3×→5× büyüterek modelin dayanıklılık eğrisini, Error Amplification Factor'ü ve kabul edilemezlik eşiğini bulmak. Amplify fazında, doğrulanmış kusurlar ve kritik girdiler için kullan.
+description: Find a model's robustness curve, Error Amplification Factor and unacceptability threshold by scaling a problem's condition (not the error) 1×→2×→3×→5× in a controlled way. Use in the Amplify phase, for verified defects and critical inputs.
 ---
 
 # Failure amplification
 
-## Prensip
-**Hatanın oluşmasına neden olan koşul büyütülür, hata oranı değil.** Eksik oranı 3× arttığında hata 1.4× da artabilir, 5× da. Bu ilişki deneyle keşfedilir.
+## Principle
+**The condition that causes the error is amplified, not the error rate.** When the missing share grows 3×, the error may grow 1.4× or 5×. This relationship is discovered by experiment.
 
-- `1×` projenin **olduğu gibi** halidir. Ölçülen taban koşul neyse odur.
-- Taban > 0 ise **göreli merdiven** kullanılır: 2×, 3×, 5× = taban × N. Gerçekleşen koşul `condition_realized` olarak ayrıca ölçülür ve raporlanır.
-- Taban = 0 ise ya da koşulun doğal bir tabanı yoksa (shift, lag) **mutlak merdiven** kullanılır: A1, A2... Bunlar "N kat" diye anlatılamaz.
-- Fiziksel/mantıksal sınırı aşan seviyeler kırpılır ve `limit_exceeded` olarak işaretlenir. Raporda "AŞILDI" görünür.
+- `1×` is the project **as it is**: whatever the measured base condition is.
+- If the base > 0, a **relative ladder** is used: 2×, 3×, 5× = base × N. The realised condition is measured separately as `condition_realized` and reported.
+- If the base = 0, or the condition has no natural base (shift, lag), an **absolute ladder** is used: A1, A2... These cannot be described as "N times".
+- Levels beyond the physical/logical limit are clamped and flagged `limit_exceeded`. The report shows "EXCEEDED".
 
-## Seçim: neyi büyütmeli?
-1. **Doğrulanmış (Verified) kusurlar:** Kusurun büyüklüğü artarsa ne olur?
-2. **Profilde iş açısından kritik girdiler:** Hangi feature'lar tahmin anında gecikebilir ya da eksik gelebilir? Bunu `feature_availability` ve `business_context` alanlarından çıkar.
-3. **Ablation'da en yüksek EAF'ye sahip feature'lar:** Model neye bağımlıysa ilk orayı stresle.
+## What to amplify
+1. **Verified defects:** what happens if the size of the defect grows?
+2. **Business-critical inputs from the profile:** which features may arrive late or missing at prediction time? Derive this from `feature_availability` and `business_context`.
+3. **Features with the highest EAF in ablation:** stress first what the model depends on.
 
-## Injector ↔ problem ailesi
-| Problem | Injector | Koşul ölçüsü |
+## Injector ↔ problem family
+| Problem | Injector | Condition measure |
 |---|---|---|
-| Eksik veri | `missing` | eksik hücre payı |
-| Aykırı değer | `outliers` | robust-z > eşik olan satır payı |
-| Dağılım kayması | `shift` | std birimi kayma (veya çarpımsal) |
-| Gecikmeli/bayat feature | `time_lag` | dönem sayısı (entity içinde) |
-| Feature bağımlılığı | `ablation` | kaldırılan feature(lar) |
+| Missing data | `missing` | share of missing cells |
+| Outliers | `outliers` | share of rows with robust-z > threshold |
+| Distribution shift | `shift` | shift in std units (or multiplicative) |
+| Delayed/stale feature | `time_lag` | number of periods (within entity) |
+| Feature dependency | `ablation` | removed feature(s) |
 
-Henüz desteklenmeyenler (stockout/sansür, leakage kapsamı, alt grup temsili, birleşik senaryolar) Aşama 4+ kapsamında eklenecek. Bunları hipotez olarak kaydet ve "test aracı yok" diye raporla.
+Not yet supported (stockout/censoring, leakage scope, subgroup representation, compound scenarios) will come later. Register them as hypotheses and report "no test tool".
 
 ## Failure threshold discovery
-- `acceptable_threshold` onaylıysa (`{"metric":"mae","max":5.0}`) sonuçta `threshold.first_level` alanı, kabul edilemez hale gelinen ilk seviyeyi gösterir.
-- Onaylı değilse yalnızca eğri raporlanır. Eşik uydurma, insana sor.
+- If `acceptable_threshold` is confirmed (`{"metric":"mae","max":5.0}`), the result's `threshold.first_level` shows the first level at which performance becomes unacceptable.
+- If not confirmed, only the curve is reported. Do not invent a threshold; ask the human.
 
-## Okuma
-- **EAF eğrisi monoton mu?** Değilse gürültü ya da etkileşim olabilir. Replicate sayısını artır veya Inconclusive kabul et.
-- **Esneklik:** log(EAF)/log(N). 1'den küçükse girdi bozulmasına göre hata yavaş büyüyor demektir, büyükse hata koşuldan hızlı büyüyordur.
-- **Failures > 0:** Model koşul altında çöktü, örneğin NaN değerleri işleyemiyor. Bu ayrı ve güçlü bir bulgudur.
-- **where=test için düşük EAF ama where=train için yüksek EAF:** Sorun üretim girdisinde değil, eğitim verisi kalitesinde.
+## Reading the results
+- **Is the EAF curve monotonic?** If not, it may be noise or interaction. Increase replicates or accept Inconclusive.
+- **Elasticity:** log(EAF)/log(N). Below 1 means error grows slower than the input corruption; above 1 means error grows faster than the condition.
+- **Failures > 0:** the model crashed under the condition, e.g. it cannot handle NaN. This is a separate and strong finding.
+- **Low EAF for where=test but high for where=train:** the problem is training-data quality, not production inputs.
 
-## Raporlama dili
-"Eksik oranı (ölçülen taban %4.8) 3×'e çıkarıldığında MAE EAF=1.35 [1.31, 1.40] (E-012, Simulated)." Bu cümleyi "üretimde %35 kötüleşecek" diye yazma.
+## Reporting language
+"When the missing share (measured base 4.8%) was raised to 3×, MAE EAF=1.35 [1.31, 1.40] (E-012, Simulated)." Do not write this as "production will get 35% worse".

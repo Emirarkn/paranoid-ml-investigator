@@ -1,592 +1,590 @@
 # PARANOID ML INVESTIGATOR
 ## Autonomous ML/AI Failure Discovery, Amplification & Consequence Analysis System
 
-**Proje Türü:** AI Agent / ML Auditing / Adversarial Testing
+**Project type:** AI Agent / ML Auditing / Adversarial Testing
 
-**Doküman:** Sistem Tasarım Raporu ve Geliştirme Roadmap'i
+**Document:** System Design Report and Development Roadmap
 
-**Versiyon:** 1.0 — Kasım 2026
+**Version:** 1.0 — November 2026
 
-**Hedef:** Yerel ortamda çalışabilen, farklı ML/AI projelerinde tekrar kullanılabilecek bir kalite kontrol ve araştırma sistemi geliştirmek.
+**Goal:** Build a quality-control and investigation system that runs locally and can be reused across different ML/AI projects.
 
 ---
 
-# 1. Yönetici Özeti
+# 1. Executive Summary
 
-Paranoid ML Investigator, makine öğrenmesi, derin öğrenme, tahminleme ve yapay zekâ projelerini bağımsız olarak incelemek üzere tasarlanan bir AI agent sistemidir.
+Paranoid ML Investigator is an AI agent system designed to independently examine machine learning, deep learning, forecasting and artificial intelligence projects.
 
-Geleneksel kod inceleme araçları mevcut hataları ve bilinen yazılım problemlerini tespit etmeye odaklanır. Bu proje ise daha ileri bir soruyu araştırır:
+Traditional code review tools focus on detecting existing bugs and known software problems. This project investigates a further question:
 
-**"Bu sistemin doğru çalıştığını düşünüyoruz. Peki hangi varsayımlar yanlışsa, hangi koşullarda veya hangi değişiklikler sonucunda başarısız olur?"**
+**"We think this system works correctly. If which assumptions are wrong, under which conditions or after which changes does it fail?"**
 
-Agent yalnızca hata raporlamaz. Hataların oluşma mekanizmalarını araştırır, gizli varsayımları sorgular, kontrollü deneyler tasarlar ve problemleri büyüterek modelin dayanıklılık sınırlarını belirlemeye çalışır.
+The agent does not only report errors. It investigates how errors arise, questions hidden assumptions, designs controlled experiments and amplifies problems to determine the model's robustness limits.
 
-Örneğin veri setindeki eksik gözlem oranı %5 ise bunun %10, %15 ve %25 olması halinde modelin nasıl davrandığını inceler.
+For example, if the missing-observation rate in a dataset is 5%, it examines how the model behaves when it is 10%, 15% and 25%.
 
-Ayrıca bulunan problemlerin gelecekte neye dönüşebileceğini simüle eder. Yanlış tahminlerin stok kararlarına, maliyetlere ve sonraki dönemlere olan olası etkilerini hesaplar.
+It also simulates what the problems found could turn into in the future. It calculates the possible effects of wrong forecasts on stock decisions, costs and later periods.
 
-Sistemin temel yaklaşımı:
+The core approach of the system:
 
 **Discover → Challenge → Amplify → Experiment → Verify → Predict Consequences → Repair → Retest**
 
-Amaç mümkün olduğunca çok hata uydurmak değildir. Amaç, önemli zayıflıkları kanıtlarla ortaya çıkarmak ve sistemin güvenilirliğini artırmaktır.
+The goal is not to invent as many bugs as possible. The goal is to surface important weaknesses with evidence and increase the reliability of the system.
 
-# 2. Problem Tanımı
+# 2. Problem Definition
 
-ML ve AI projelerinde başarısızlıklar yalnızca yanlış algoritma seçiminden kaynaklanmaz.
+Failures in ML and AI projects do not stem only from choosing the wrong algorithm.
 
-Yapısal hatalar, verilerin hazırlanması, hedef değişkenin tanımlanması, modelin eğitilmesi, performansın ölçülmesi ve sonuçların iş süreçlerine aktarılması sırasında oluşabilir.
+Structural errors can arise while preparing data, defining the target variable, training the model, measuring performance and transferring results into business processes.
 
-Örneğin yüksek doğruluk gösteren bir model aşağıdaki sorunları barındırabilir:
+For example, a model showing high accuracy may harbour the following problems:
 
-- Gelecekteki bilgilerin yanlışlıkla eğitim verisine dahil edilmesi.
-- Eksik, hatalı veya yanlı veriler.
-- İş hedefiyle uyumsuz optimizasyon metrikleri.
-- Modelin öğrenmesi gereken ilişki yerine tesadüfi korelasyonları öğrenmesi.
-- Eğitim ve gerçek kullanım koşulları arasında farklılıklar.
-- Eksik değerlendirme senaryoları.
-- Küçük veri bozulmalarının büyük tahmin hatalarına dönüşmesi.
-- LLM tabanlı bileşenlerde doğrulanmamış sonuçların kesin bilgi olarak sunulması.
+- Future information accidentally included in the training data.
+- Missing, erroneous or biased data.
+- Optimisation metrics misaligned with the business goal.
+- The model learning coincidental correlations instead of the relationship it should learn.
+- Differences between training and real-world usage conditions.
+- Missing evaluation scenarios.
+- Small data corruptions turning into large forecast errors.
+- Unverified results presented as definite facts in LLM-based components.
 
-Mevcut test yaklaşımlarının bir kısmı önceden tanımlanmış kontrol listelerine dayanır.
+Some existing testing approaches rely on predefined checklists.
 
-Paranoid ML Investigator'ın temel farkı, önceden yazılmamış hata hipotezlerini de geliştirmesi ve deneylerle sınamasıdır.
+The key difference of Paranoid ML Investigator is that it also develops failure hypotheses that were not written in advance and tests them with experiments.
 
-# 3. Agent'ın Çalışma Mantığı
+# 3. How the Agent Works
 
-Sistemin davranışı bilimsel bir araştırmacının yaklaşımına benzemelidir.
+The system's behaviour should resemble that of a scientific researcher.
 
-Önce mevcut projeyi anlamalı, ardından modelin başarısını açıklayan alternatif hipotezler üretmelidir.
+It must first understand the existing project, then generate alternative hypotheses explaining the model's success.
 
-Örneğin bir forecasting modelinin düşük hata oranı göstermesi, gerçekten başarılı olduğu anlamına gelmeyebilir.
+For example, a low error rate in a forecasting model does not necessarily mean it is truly successful.
 
-Agent şu soruları araştırabilir:
+The agent may investigate questions such as:
 
-"Model geçmiş verileri mi öğrendi, yoksa geleceğe ilişkin bilgileri yanlışlıkla kullandı mı?"
+"Did the model learn from past data, or did it accidentally use information about the future?"
 
-"Yüksek tahmin doğruluğu yalnızca belirli SKU'larda mı gerçekleşiyor?"
+"Does the high forecast accuracy occur only for certain SKUs?"
 
-"Stok bulunmadığında gerçekleşen satışları gerçek talep olarak öğreniyor olabilir mi?"
+"Could it be learning sales that occurred while stock was unavailable as true demand?"
 
-"Modelin başarısı kampanya dönemlerinin yanlış kodlanmasına mı bağlı?"
+"Does the model's success depend on promotion periods being coded incorrectly?"
 
-Her hipotez için şu döngü izlenir:
+For each hypothesis the following loop is followed:
 
-1. Hipotezi açık biçimde tanımla.
-2. Hipotezin yanlış olduğunu gösterebilecek bir karşıt test tasarla.
-3. Testi izole ortamda çalıştır.
-4. Başlangıç ve deney sonuçlarını karşılaştır.
-5. Kanıt varsa bulguyu doğrula; yoksa şüpheli veya reddedilmiş olarak sınıflandır.
-6. Doğrulanan problemin etkisini büyütme testine geçir.
-7. Çözüm öner ve çözümün kendisini yeniden sorgula.
+1. State the hypothesis explicitly.
+2. Design a counter-test that could show the hypothesis is false.
+3. Run the test in an isolated environment.
+4. Compare the baseline and experiment results.
+5. If there is evidence, confirm the finding; if not, classify it as suspected or rejected.
+6. Move the confirmed problem to an impact amplification test.
+7. Propose a solution and question the solution itself.
 
-**Agent'ın şüpheci olması, bulgularının kesin doğru olduğu anlamına gelmez.**
+**The agent being skeptical does not mean its findings are definitely correct.**
 
-Dolayısıyla agent'ın iddiaları ile Python üzerinden ölçülen deney sonuçları birbirinden ayrılmalıdır.
+Therefore the agent's claims and the experiment results measured in Python must be kept separate.
 
-# 4. Sistem Mimarisi
+# 4. System Architecture
 
-Sistem üç ana katmandan oluşacaktır.
+The system will consist of three main layers.
 
-## Katman A — Intelligence Layer
+## Layer A — Intelligence Layer
 
-Bu katman LLM destekli düşünme ve araştırma işlemlerini yürütür.
+This layer carries out LLM-supported reasoning and investigation.
 
 **Project Understanding Module**
 
-Projenin kaynak kodlarını, klasör yapısını, veri dosyalarını, model eğitim süreçlerini, konfigürasyonlarını ve mevcut performans raporlarını inceler.
+Examines the project's source code, folder structure, data files, model training processes, configurations and existing performance reports.
 
-Amaç modelin hangi girdilerden hangi çıktıları ürettiğini anlamaktır.
+The goal is to understand which outputs the model produces from which inputs.
 
 **Skeptical Hypothesis Engine**
 
-Projede bulunabilecek mantıksal boşlukları, gizli bağımlılıkları ve hata ihtimallerini araştırır.
+Investigates logical gaps, hidden dependencies and failure possibilities that may exist in the project.
 
-Her şüphe için neden, beklenen etki ve doğrulama yöntemi üretir.
+For each suspicion it produces a reason, an expected effect and a verification method.
 
 **Experimental Planner**
 
-Hipotezi çalıştırılabilir bir teste dönüştürür.
+Turns a hypothesis into an executable test.
 
-Hangi parametrenin değiştirileceğini, hangi dosyaların kullanılacağını ve hangi başarısızlık kriterlerinin değerlendirileceğini tanımlar.
+Defines which parameter will be changed, which files will be used and which failure criteria will be evaluated.
 
-## Katman B — Experimental Harness
+## Layer B — Experimental Harness
 
-Bu katman LLM'in yalnızca yorum yaptığı değil, test sonuçlarının gerçek kodlarla üretildiği bölümdür.
+This is the part where test results are produced by real code, not merely interpreted by the LLM.
 
 **Structural Auditor**
 
-Veri şemaları, formüller, kod bağımlılıkları, zaman sıralaması, hedef değişken tanımları ve değerlendirme yöntemlerindeki tutarsızlıkları araştırır.
+Investigates inconsistencies in data schemas, formulas, code dependencies, time ordering, target-variable definitions and evaluation methods.
 
 **Fault Injection Engine**
 
-Kontrollü biçimde veri eksiltir, geciktirir, bozar veya senaryo değişiklikleri uygular.
+Removes, delays or corrupts data in a controlled way, or applies scenario changes.
 
 **Failure Amplification Engine**
 
-Sorunun şiddetini 1×, 2×, 3× ve 5× seviyelerine taşıyarak modelin dayanıklılığını ölçer.
+Measures the model's robustness by taking the severity of the problem to 1×, 2×, 3× and 5× levels.
 
 **Backtesting Engine**
 
-Modelleri geçmiş dönemlerde, o tarihte gerçekten erişilebilir bilgilerle yeniden değerlendirir.
+Re-evaluates models in past periods using the information that was actually available at that time.
 
 **Consequence Simulation Engine**
 
-Tahmin hatalarının sonraki dönemlere ve iş süreçlerine nasıl yayılabileceğini simüle eder.
+Simulates how forecast errors may spread to later periods and into business processes.
 
 **Evidence Verification Engine**
 
-Sonuçları yeniden hesaplar, kanıtları karşılaştırır ve doğrulanamayan bulguları ayırır.
+Recomputes results, compares evidence and separates findings that cannot be verified.
 
-## Katman C — Decision & Reporting Layer
+## Layer C — Decision & Reporting Layer
 
 **Root Cause Analyzer**
 
-Bulgunun temel nedenini açıklar. Belirtiyle kök nedeni birbirinden ayırır.
+Explains the root cause of a finding. Separates the symptom from the root cause.
 
 **Solution Planner**
 
-Düzeltme seçeneklerini, beklenen faydalarını ve olası yan etkilerini tanımlar.
+Defines fix options, their expected benefits and possible side effects.
 
 **Counterfactual Tester**
 
-Önerilen düzeltme uygulanmış olsaydı sonuçların nasıl değişeceğini aynı test koşullarında değerlendirir.
+Evaluates, under the same test conditions, how the results would change if the proposed fix had been applied.
 
 **Report Generator**
 
-Deneylerin tamamını anlaşılır, kanıta dayalı bir rapora dönüştürür.
+Turns all experiments into an understandable, evidence-based report.
 
 ---
 
 # 5. Failure Amplification Engine
 
-Bu motor sistemin temel farklılaştırıcı özelliğidir.
+This engine is the system's key differentiator.
 
-## 5.1. Hata büyütme prensibi
+## 5.1. The amplification principle
 
-Agent önce bir problemin başlangıç seviyesini ölçer.
+The agent first measures the baseline level of a problem.
 
-Daha sonra problemi kontrollü biçimde artırır ve modelin verdiği tepkiyi ölçer.
+Then it increases the problem in a controlled way and measures the model's response.
 
-Örnek:
+Example:
 
-Bir veri setinin %5'inde eksik stok bilgisi bulunmaktadır.
+5% of a dataset has missing stock information.
 
-| Deney | Eksik veri | Problemin şiddeti |
+| Experiment | Missing data | Problem severity |
 |---|---:|---:|
-| Baseline | %5 | 1× |
-| Test A | %10 | 2× |
-| Test B | %15 | 3× |
-| Test C | %25 | 5× |
+| Baseline | 5% | 1× |
+| Test A | 10% | 2× |
+| Test B | 15% | 3× |
+| Test C | 25% | 5× |
 
-Önemli nokta: **Hata oranı otomatik olarak 2× veya 3× yapılmaz. Hatanın oluşmasına neden olan koşul büyütülür.**
+Important point: **The error rate is not automatically doubled or tripled. The condition that causes the error is amplified.**
 
-Örneğin eksik veri 3× artarken tahmin hatası 1.4×, 2.8× veya 5× artabilir. Sistem bu ilişkiyi deneysel olarak keşfeder.
+For example, while missing data grows 3×, the forecast error may grow 1.4×, 2.8× or 5×. The system discovers this relationship experimentally.
 
-Temel ölçüm:
+Core measure:
 
 **Error Amplification Factor = Stress Test Error / Baseline Error**
 
-Örneğin baseline WAPE %12 ve stres testi WAPE %30 ise:
+For example, if baseline WAPE is 12% and stress-test WAPE is 30%:
 
 **Error Amplification Factor = 2.5×**
 
-Bu, modelin ilgili veri bozulmasına karşı hassasiyetini gösterir.
+This shows the model's sensitivity to the corresponding data corruption.
 
-Test sonuçları gerçek verilerden üretilmediği sürece varsayımsal olarak işaretlenir.
+Unless test results are produced from real data, they are marked as hypothetical.
 
-## 5.2. Büyütülecek problem kategorileri
+## 5.2. Problem categories to amplify
 
-Her hata aynı şekilde büyütülemez. Bu nedenle Fault Injection Engine, problem türüne uygun strateji seçmelidir.
+Not every error can be amplified the same way. The Fault Injection Engine must therefore choose a strategy suited to the problem type.
 
-| Problem | Amplification yöntemi |
+| Problem | Amplification method |
 |---|---|
-| Eksik veri | Eksik kayıt oranını artırma |
-| Outlier | Aykırı değerlerin sayısını veya büyüklüğünü artırma |
-| Data leakage | Gelecekten gelen bilginin kapsamını değiştirme |
-| Feature dependency | Kritik değişkenleri sırayla kaldırma |
-| Stockout | Kesinti süresi ve etkilenen ürün sayısını artırma |
-| Data drift | Veri dağılımını kontrollü kaydırma |
-| Model bias | Belirli alt grupların veri temsilini değiştirme |
-| Formül hatası | Yanlış formülü farklı büyüklükte girdilerle test etme |
-| LLM hallucination | Belirsiz, çelişkili veya eksik kanıtlı görev sayısını artırma |
+| Missing data | Increase the share of missing records |
+| Outlier | Increase the number or magnitude of outliers |
+| Data leakage | Change the scope of information coming from the future |
+| Feature dependency | Remove critical variables one by one |
+| Stockout | Increase outage duration and number of affected products |
+| Data drift | Shift the data distribution in a controlled way |
+| Model bias | Change the data representation of specific subgroups |
+| Formula error | Test the wrong formula with inputs of different sizes |
+| LLM hallucination | Increase the number of ambiguous, contradictory or under-evidenced tasks |
 
-Mümkün olduğunda testler gerçekçi sınırlar içinde yapılmalıdır.
+Where possible, tests should stay within realistic bounds.
 
-Bir parametre 5× büyütülemiyorsa sistem fiziksel veya mantıksal sınırın aşıldığını belirtmelidir.
+If a parameter cannot be amplified 5×, the system must state that a physical or logical limit was exceeded.
 
 ## 5.3. Failure Threshold Discovery
 
-Bu özellik modelin hangi noktada güvenilmez hale geldiğini araştıracaktır.
+This feature will investigate at which point the model becomes unreliable.
 
-Örneğin:
+For example:
 
-- Veri eksikliği hangi seviyede WAPE'yi kabul edilemez düzeye çıkarıyor?
-- Kaç dönemlik stok kesintisinde model sistematik olarak eksik tahmin üretiyor?
-- Hangi veri kayması seviyesinde tahmin aralıklarının kapsama oranı düşüyor?
-- Hangi SKU'lar diğerlerinden önce başarısız oluyor?
+- At what level of missing data does WAPE become unacceptable?
+- After how many periods of stock outage does the model systematically under-forecast?
+- At what level of data drift does prediction-interval coverage drop?
+- Which SKUs fail before the others?
 
-Bu sonuçlardan bir dayanıklılık profili çıkarılacaktır.
+A robustness profile will be derived from these results.
 
-**Hedef yalnızca hatayı göstermek değil, hatanın hangi koşullarda kritik hale geldiğini belirlemektir.**
+**The goal is not only to show the error, but to determine under which conditions it becomes critical.**
 
 # 6. Consequence Simulation Engine
 
-Bu motor bir hata giderilmediğinde sonraki aşamalarda neler yaşanabileceğini analiz eder.
+This engine analyses what may happen in later stages if an error is not fixed.
 
-Örneğin demand forecasting modelindeki sistematik eksik tahmini ele alalım.
+For example, consider systematic under-forecasting in a demand forecasting model.
 
-Olası süreç:
+Possible process:
 
-**Eksik demand forecast → Eksik sell-in planı → Yetersiz depo stoku → Stockout → Düşük gerçekleşen sell-out → Sonraki tahminlerde yeni sapma**
+**Under-forecast demand → too little sell-in planned → insufficient warehouse stock → stockout → low realised sell-out → new bias in subsequent forecasts**
 
-Bu döngü her koşulda gerçekleşmek zorunda değildir. Gerçekleşip gerçekleşmeyeceği stok politikası, sevkiyat süresi, talep, sipariş kararları ve diğer iş kurallarına bağlıdır.
+This loop does not have to occur in every condition. Whether it does depends on stock policy, lead time, demand, ordering decisions and other business rules.
 
-Bu nedenle motor önce neden-sonuç varsayımlarını açıkça tanımlamalıdır.
+Therefore the engine must first define its cause-effect assumptions explicitly.
 
-Ardından üç farklı senaryo oluşturacaktır.
+It will then create three different scenarios.
 
-**Senaryo A — No Intervention**
+**Scenario A — No Intervention**
 
-Problem giderilmez ve mevcut sistemle devam edilir.
+The problem is not fixed and the current system continues.
 
-**Senaryo B — Amplified Failure**
+**Scenario B — Amplified Failure**
 
-Problem 2×, 3× veya daha yüksek şiddete ulaşır.
+The problem reaches 2×, 3× or higher severity.
 
-**Senaryo C — Corrected System**
+**Scenario C — Corrected System**
 
-Önerilen müdahale uygulanır ve aynı koşullar altında sonuçları yeniden simüle edilir.
+The proposed intervention is applied and the results are re-simulated under the same conditions.
 
-İşletme verileri yeterliyse 3, 6 ve 12 aylık etkiler hesaplanabilir.
+If business data is sufficient, 3-, 6- and 12-month effects can be calculated.
 
-Örnek çıktılar:
+Example outputs:
 
-- Beklenen stok fazlası.
-- Stokout yaşayan dönem sayısı.
-- Olası kayıp satış miktarı.
-- Stok tutma maliyeti.
-- Depolar arasında yanlış tahsis edilen miktarlar.
-- SKU bazında forecast bias.
-- Servis seviyesi üzerindeki etkiler.
+- Expected excess stock.
+- Number of periods with stockouts.
+- Possible lost sales quantity.
+- Stock holding cost.
+- Quantities misallocated between warehouses.
+- Forecast bias per SKU.
+- Effects on service level.
 
-Geleceğe ilişkin bu değerler kesin sonuç değil, varsayımlara bağlı senaryolardır.
+These future values are not definite results but assumption-dependent scenarios.
 
-Talep belirsizliği mevcutsa tek sonuç yerine farklı talep senaryoları veya Monte Carlo simülasyonlarıyla sonuç aralıkları oluşturulmalıdır.
+If demand uncertainty exists, outcome ranges should be produced with different demand scenarios or Monte Carlo simulations instead of a single result.
 
 # 7. Evidence & Hallucination Control
 
-Sistemin en önemli güvenilirlik mekanizmasıdır.
+This is the system's most important reliability mechanism.
 
-Agent'ın problem ararken hayalî problemler üretmesini önlemek için bütün iddialar kanıt statüsüne sahip olacaktır.
+To prevent the agent from producing imaginary problems while searching for problems, every claim will have an evidence status.
 
-| Statü | Anlamı |
+| Status | Meaning |
 |---|---|
-| Verified | Gerçek kod, veri veya tekrar edilebilir deneyle doğrulandı |
-| Suspected | Makul hipotez, yeterli kanıt yok |
-| Simulated | Yalnızca kontrollü deney koşullarında gözlemlendi |
-| Rejected | Yapılan deney hipotezi desteklemedi |
-| Inconclusive | Test sonucu değerlendirme için yetersiz |
+| Verified | Confirmed with real code, data or a reproducible experiment |
+| Suspected | Plausible hypothesis, insufficient evidence |
+| Simulated | Observed only under controlled experimental conditions |
+| Rejected | The experiment did not support the hypothesis |
+| Inconclusive | Test result insufficient for evaluation |
 
-Her bulgu en az şu bilgileri içermelidir:
+Every finding must contain at least the following information:
 
-**Finding ID, problem açıklaması, kaynak dosya/satır, etkilenen veri, hipotez, test prosedürü, başlangıç ölçümü, deney ölçümü, kanıt dosyası, belirsizlik ve önerilen düzeltme.**
+**Finding ID, problem description, source file/line, affected data, hypothesis, test procedure, baseline measurement, experiment measurement, evidence file, uncertainty and proposed fix.**
 
-Ek olarak agent'ın kendi halüsinasyonlarını araştıran testler olacaktır.
+In addition, there will be tests that investigate the agent's own hallucinations.
 
-Örnekler:
+Examples:
 
-- Kaynak kodda bulunmayan bir fonksiyonun var olduğunu iddia etmesi.
-- Çalıştırmadığı bir test için performans sonucu vermesi.
-- Simülasyon sonucunu gerçek üretim verisi olarak sunması.
-- Korelasyonu kanıtlanmış nedensellik olarak yorumlaması.
-- Yanlış veya mevcut olmayan dosya satırlarına referans üretmesi.
-- Düzeltme yapılmadan performansın iyileştiğini söylemesi.
+- Claiming that a function not present in the source code exists.
+- Giving a performance result for a test it did not run.
+- Presenting a simulation result as real production data.
+- Interpreting correlation as proven causation.
+- Producing references to wrong or non-existent file lines.
+- Saying performance improved without a fix having been made.
 
-**Raporlama kuralı:** Kanıt bulunmayan hiçbir iddia Verified statüsüne geçirilemez.
+**Reporting rule:** No claim without evidence can move to Verified status.
 
-Önemli bulguların bağımsız bir hesaplama veya ikinci değerlendirme aşamasından geçmesi gerekir.
+Important findings must go through an independent calculation or a second evaluation stage.
 
-# 8. Teknik Mimari ve Teknoloji Seçimi
+# 8. Technical Architecture and Technology Choices
 
-İlk sürüm yerel çalışan bir Python uygulaması olarak geliştirilmelidir.
+The first version should be developed as a locally running Python application.
 
-Web arayüzü, bulut altyapısı veya çoklu agent organizasyonu başlangıç için zorunlu değildir.
+A web interface, cloud infrastructure or multi-agent organisation is not required at the start.
 
-| Bileşen | Önerilen teknoloji |
+| Component | Recommended technology |
 |---|---|
-| Temel dil | Python |
-| Agent orchestration | Başlangıçta Python state machine; ihtiyaçta LangGraph |
-| LLM bağlantısı | Değiştirilebilir model adaptörü |
-| Yerel LLM seçeneği | Ollama |
-| Veri işleme | pandas, NumPy |
-| Modelleme ve test | scikit-learn, statsmodels |
-| Forecast backtesting | MLForecast veya özel rolling-origin testleri |
-| Veri kalite kontrolleri | Great Expectations / Evidently |
-| Otomatik test | pytest |
-| Deney kayıtları | SQLite + JSON/Parquet |
-| Rapor | Markdown + HTML |
-| Versiyonlama | Git |
+| Core language | Python |
+| Agent orchestration | Python state machine at first; LangGraph if needed |
+| LLM connection | Swappable model adapter |
+| Local LLM option | Ollama |
+| Data processing | pandas, NumPy |
+| Modelling and testing | scikit-learn, statsmodels |
+| Forecast backtesting | MLForecast or custom rolling-origin tests |
+| Data quality checks | Great Expectations / Evidently |
+| Automated tests | pytest |
+| Experiment records | SQLite + JSON/Parquet |
+| Report | Markdown + HTML |
+| Versioning | Git |
 
-**Kendi harness'ımız temel sistem olacak; açık kaynak kütüphaneler yalnızca hesaplama ve kontrol araçları olarak kullanılacaktır.**
+**Our own harness will be the core system; open-source libraries will be used only as calculation and checking tools.**
 
-## 8.1. Önerilen repo yapısı
+## 8.1. Proposed repository structure
 
-Proje adı: `paranoid-ml-investigator`
+Project name: `paranoid-ml-investigator`
 
-- `src/core/`: Orchestration, durum yönetimi, çalışma kuralları.
+- `src/core/`: Orchestration, state management, operating rules.
 - `src/agents/`: Project analyzer, hypothesis investigator, solution planner.
-- `src/auditors/`: Veri, kod, model ve evaluation denetimleri.
+- `src/auditors/`: Data, code, model and evaluation audits.
 - `src/amplification/`: Fault injector, severity controller, threshold detector.
 - `src/simulation/`: Consequence simulator, inventory simulator, scenario manager.
-- `src/verification/`: Kanıt doğrulama, metrikler, tekrar deneyleri.
-- `src/reporting/`: Rapor oluşturma, bulgu kayıtları.
-- `src/adapters/`: LLM, model, veri ve forecasting framework bağlantıları.
-- `config/`: Agent politikaları, hata seviyeleri, test bütçeleri.
-- `tests/`: Unit, integration, adversarial ve hallucination testleri.
-- `examples/`: Sentetik forecasting ve ML projeleri.
-- `runs/`: Deney sonuçları, loglar ve raporlar.
+- `src/verification/`: Evidence verification, metrics, repeat experiments.
+- `src/reporting/`: Report generation, finding records.
+- `src/adapters/`: LLM, model, data and forecasting framework connections.
+- `config/`: Agent policies, failure levels, test budgets.
+- `tests/`: Unit, integration, adversarial and hallucination tests.
+- `examples/`: Synthetic forecasting and ML projects.
+- `runs/`: Experiment results, logs and reports.
 
-Bu ayrım sayesinde agent'ın düşünme mekanizması ile hesaplama motorları birbirine sıkı biçimde bağlanmaz.
+This separation keeps the agent's reasoning mechanism loosely coupled from the computation engines.
 
-## 8.2. Harness çalışma kuralları
+## 8.2. Harness operating rules
 
-Harness şu güvenlik ve doğruluk kurallarını zorunlu olarak uygulamalıdır:
+The harness must enforce the following safety and correctness rules:
 
-- Orijinal proje dosyaları başlangıçta salt okunur olmalı.
-- Testler ayrı çalışma klasörlerinde yürütülmeli.
-- Çalıştırılacak kod için izinli komut ve kaynak sınırları tanımlanmalı.
-- Gerekirse ağ erişimi tamamen kapatılmalı.
-- Bütün veri değişiklikleri kayıt altına alınmalı.
-- Deneylerin random seed, model versiyonu ve parametreleri saklanmalı.
-- Eğitim ve test dönemleri birbirine karıştırılmamalı.
-- Gelecekte bilinmeyecek feature'lar test aşamasında kullanılmamalı.
-- Agent model değişikliklerini üretim ortamına otomatik aktarmamalı.
-- Belirlenmiş çalışma süresi, deney sayısı veya maliyet sınırına ulaşıldığında süreç durmalı.
+- Original project files must be read-only from the start.
+- Tests must run in separate working folders.
+- Allowed commands and resource limits must be defined for code that will be executed.
+- Network access must be fully closed if necessary.
+- All data changes must be recorded.
+- The random seed, model version and parameters of each experiment must be stored.
+- Training and test periods must not be mixed.
+- Features that would not be known in the future must not be used at test time.
+- The agent must not automatically push model changes to production.
+- The process must stop when a defined run time, number of experiments or cost limit is reached.
 
-# 9. Roadmap — Geliştirme Aşamaları
+# 9. Roadmap — Development Stages
 
-Roadmap sekiz aşamaya ayrılmıştır. İlk aşamalarda çalışan bir çekirdek sistem kurulacak, daha karmaşık yetenekler bunun üzerine eklenecektir.
+The roadmap is divided into eight stages. A working core system will be built in the first stages, and more complex capabilities will be added on top of it.
 
-| Aşama | Geliştirme | Somut çıktı |
+| Stage | Development | Concrete output |
 |---|---|---|
-| 1 | Sistem sözleşmesi ve repo altyapısı | Çalışan Python proje iskeleti |
-| 2 | Project intelligence ve veri denetimi | Dosyaları analiz eden auditor |
-| 3 | Hypothesis & evidence sistemi | Kanıta bağlanan hipotez kayıtları |
-| 4 | Failure amplification | 1×, 2×, 3×, 5× stres testleri |
-| 5 | Consequence simulation | Gelecek etki senaryoları |
-| 6 | Solution & counterfactual | Müdahale öncesi/sonrası karşılaştırma |
-| 7 | Agent hallucination & red teaming | Yanlış iddiaları yakalayan testler |
-| 8 | Entegrasyon ve kalite kontrol | Kullanılabilir, tekrarlanabilir MVP |
+| 1 | System contract and repo infrastructure | Working Python project skeleton |
+| 2 | Project intelligence and data audit | Auditor that analyses files |
+| 3 | Hypothesis & evidence system | Hypothesis records linked to evidence |
+| 4 | Failure amplification | 1×, 2×, 3×, 5× stress tests |
+| 5 | Consequence simulation | Future impact scenarios |
+| 6 | Solution & counterfactual | Before/after intervention comparison |
+| 7 | Agent hallucination & red teaming | Tests that catch false claims |
+| 8 | Integration and quality control | Usable, reproducible MVP |
 
-## Aşama 1 — Foundation
+## Stage 1 — Foundation
 
-Önce proje standartları tanımlanır.
+First, project standards are defined.
 
-Girdi türleri, desteklenen model aileleri, güvenlik sınırları, bulgu kayıt şeması ve çıktı formatları belirlenir.
+Input types, supported model families, safety limits, the finding record schema and output formats are determined.
 
-Tek bir komutla örnek proje taranabilmelidir.
+A sample project must be scannable with a single command.
 
-**Kabul kriteri:** Sistem dosyaları güvenle okuyabilmeli, proje envanterini çıkarabilmeli ve hiçbir orijinal dosyayı değiştirmemelidir.
+**Acceptance criterion:** The system must be able to read files safely, produce a project inventory and modify no original file.
 
-## Aşama 2 — Structural Intelligence
+## Stage 2 — Structural Intelligence
 
-Agent proje yapısını, veri akışını ve model eğitim mantığını analiz eder.
+The agent analyses the project structure, data flow and model training logic.
 
-İlk sürümde Python dosyaları, CSV/Excel verileri, model konfigürasyonları ve performans çıktıları desteklenmelidir.
+The first version should support Python files, CSV/Excel data, model configurations and performance outputs.
 
-**Kabul kriteri:** Kullanılan target, feature'lar, veri dönemi, model ve değerlendirme yöntemi doğru tanımlanmalıdır.
+**Acceptance criterion:** The target, features, data period, model and evaluation method used must be identified correctly.
 
-## Aşama 3 — Hypothesis Engine
+## Stage 3 — Hypothesis Engine
 
-Agent şüphe üretir, fakat her hipotezin nasıl test edileceğini de açıklamak zorundadır.
+The agent generates suspicions, but must also explain how each hypothesis will be tested.
 
-İlk sürümde sınırlı sayıda, önceliklendirilmiş hipotez çalıştırılır.
+In the first version a limited number of prioritised hypotheses is run.
 
-**Kabul kriteri:** Şüpheli, doğrulanmış ve reddedilmiş hipotezler karışmamalıdır.
+**Acceptance criterion:** Suspected, verified and rejected hypotheses must not be mixed.
 
-## Aşama 4 — Amplification MVP
+## Stage 4 — Amplification MVP
 
-Üç hata ailesiyle başlanmalıdır:
+Start with three failure families:
 
 1. Missing data amplification.
 2. Outlier / distribution shift amplification.
-3. Forecast feature ve zamanlama bozulmaları.
+3. Forecast feature and timing corruptions.
 
-Daha sonra stockout, leakage ve birleşik hata senaryoları eklenir.
+Stockout, leakage and combined failure scenarios are added later.
 
-**Kabul kriteri:** Aynı model üzerinde farklı şiddetteki deneyler otomatik çalıştırılabilmeli, hata değişimi doğru hesaplanmalı ve sonuçlar tekrar üretilebilmelidir.
+**Acceptance criterion:** Experiments of different severity on the same model must run automatically, the change in error must be calculated correctly, and the results must be reproducible.
 
-## Aşama 5 — Consequence Engine
+## Stage 5 — Consequence Engine
 
-Önce forecasting alanına özel basit bir stok simülasyonu geliştirilir.
+First, a simple stock simulation specific to forecasting is developed.
 
-Forecast çıktısı, sipariş planı ve stok hareketleri arasındaki ilişki tanımlanır.
+The relationship between forecast output, ordering plan and stock movements is defined.
 
-**Kabul kriteri:** Aynı varsayımlar altında müdahalesiz ve düzeltilmiş senaryolar karşılaştırılabilmelidir.
+**Acceptance criterion:** No-intervention and corrected scenarios must be comparable under the same assumptions.
 
-## Aşama 6 — Repair & Retest
+## Stage 6 — Repair & Retest
 
-Agent çözüm önerir ve önerilen düzeltme izole ortamda uygulanır.
+The agent proposes a solution and the proposed fix is applied in an isolated environment.
 
-Düzeltilmiş model orijinal modelle aynı zamansal değerlendirme koşullarında karşılaştırılır.
+The corrected model is compared with the original model under the same temporal evaluation conditions.
 
-**Kabul kriteri:** Bir sorunun giderilmesi başka SKU, dönem veya performans metriğinde ciddi bozulma yaratıyorsa rapor bunu göstermelidir.
+**Acceptance criterion:** If fixing one problem causes serious degradation in another SKU, period or performance metric, the report must show it.
 
-## Aşama 7 — Agent Red Team
+## Stage 7 — Agent Red Team
 
-Agent'a kasıtlı olarak eksik belgeler, yanıltıcı metrikler, sahte hata ipuçları ve bozuk dosya referansları verilir.
+The agent is deliberately given incomplete documents, misleading metrics, fake error hints and broken file references.
 
-Amaç agent'ın kendisinin ne zaman güvenilmez hale geldiğini bulmaktır.
+The goal is to find when the agent itself becomes unreliable.
 
-**Kabul kriteri:** Agent çalıştırmadığı deneyleri çalıştırılmış gibi sunmamalı; bilinmeyen veya doğrulanamayan bilgileri açıkça işaretlemelidir.
+**Acceptance criterion:** The agent must not present experiments it did not run as if they were run, and must explicitly mark unknown or unverifiable information.
 
-## Aşama 8 — Production Hardening
+## Stage 8 — Production Hardening
 
-Son aşamada kod düzeni, izlenebilirlik, performans, hata yönetimi ve raporların anlaşılabilirliği değerlendirilir.
+In the final stage, code organisation, traceability, performance, error handling and report clarity are evaluated.
 
-Büyük dosyalar, başarısız deneyler ve yarıda kesilen işlemler için toparlanma mekanizmaları eklenir.
+Recovery mechanisms are added for large files, failed experiments and interrupted runs.
 
-**Kabul kriteri:** Kullanıcı aynı girdiyi ve aynı deney ayarlarını verdiğinde aynı sayısal test sonuçlarını elde edebilmelidir. LLM yorumları farklılaşabilse de kanıt kayıtları değişmemelidir.
+**Acceptance criterion:** When the user provides the same input and the same experiment settings, they must obtain the same numerical test results. LLM interpretations may vary, but evidence records must not change.
 
-# 10. İlk Pilot: Demand Forecasting
+# 10. First Pilot: Demand Forecasting
 
-İlk gerçek uygulama alanı ürün ve ay bazlı demand forecasting projesi olmalıdır.
+The first real application area should be a product- and month-level demand forecasting project.
 
-Örnek girdiler:
+Example inputs:
 
-- Geçmiş dönem sell-out.
-- Ürün/depo bazlı sell-in.
-- Biliniyorsa stokout dönemleri.
-- Stok ve kampanya bilgileri.
-- Kullanılan model kodları.
-- Geçmiş tahminler ve gerçekleşmeler.
-- Mevcut performans raporları.
+- Historical sell-out.
+- Sell-in by product/warehouse.
+- Stockout periods, if known.
+- Stock and promotion information.
+- The model code used.
+- Past forecasts and actuals.
+- Existing performance reports.
 
-Agent önce mevcut modelin geçmiş dönemlerdeki doğruluğunu bağımsız olarak değerlendirir.
+The agent first independently evaluates the existing model's accuracy over past periods.
 
-Ardından aşağıdaki soruları araştırır:
+It then investigates the following questions:
 
-**A. Model gerçekten geleceği tahmin edebiliyor mu?**
+**A. Can the model really predict the future?**
 
-Rolling-origin backtest uygulanır. Özellikle 1, 3, 6 ve 12 aylık tahmin ufukları birbirinden ayrılır.
+A rolling-origin backtest is applied. In particular, 1-, 3-, 6- and 12-month forecast horizons are separated.
 
-**B. Satışla talep birbirine karıştırılmış mı?**
+**B. Have sales and demand been confused?**
 
-Stockout dönemlerinde gerçekleşen satışın gerçek talebi eksik gösterip göstermediği araştırılır. Gerçek talep doğrudan gözlenemiyorsa bu durum açıkça belirtilir.
+It investigates whether sales realised during stockout periods understate true demand. If true demand cannot be observed directly, this is stated explicitly.
 
-**C. Sell-in ile sell-out ilişkisi doğru kurulmuş mu?**
+**C. Is the sell-in / sell-out relationship set up correctly?**
 
-Depo yüklemelerinin sonraki aylardaki satışlarla ilişkisi incelenir. Sell-in'in gerçekleşmiş tüketici talebi yerine yanlışlıkla kullanılma ihtimali test edilir.
+The relationship between warehouse loadings and sales in the following months is examined. The possibility that sell-in is mistakenly used instead of realised consumer demand is tested.
 
-**D. Model hangi koşullarda başarısız oluyor?**
+**D. Under which conditions does the model fail?**
 
-Anomaliler, stok kesintileri, veri eksikleri ve yüksek hacim değişimleri artırılarak stres testleri uygulanır.
+Stress tests are applied by increasing anomalies, stock outages, missing data and large volume changes.
 
-**E. Hatalar planlamaya nasıl yansıyor?**
+**E. How do errors reflect on planning?**
 
-Stok bulunurluğu, fazla stok, kayıp satış ve sonraki dönem tahminleri üzerindeki etkiler senaryo bazında hesaplanır.
+Effects on stock availability, excess stock, lost sales and next-period forecasts are calculated scenario by scenario.
 
-İlk pilotun sonunda SKU ve ay seviyesinde aşağıdaki çıktılar oluşturulmalıdır:
+At the end of the first pilot, the following outputs should be produced at SKU and month level:
 
 - Baseline forecast.
-- Baseline WAPE, MAE, Bias ve uygun diğer metrikler.
-- En önemli doğrulanmış problemler.
-- Amplification deneyleri ve hata duyarlılık eğrileri.
-- Kritik başarısızlık eşikleri.
-- Müdahalesiz ve düzeltilmiş senaryolar.
-- Çözüm önerileri ve yeniden test sonuçları.
+- Baseline WAPE, MAE, Bias and other appropriate metrics.
+- The most important verified problems.
+- Amplification experiments and error sensitivity curves.
+- Critical failure thresholds.
+- No-intervention and corrected scenarios.
+- Solution proposals and retest results.
 
-# 11. Başarı Kriterleri
+# 11. Success Criteria
 
-Sistem yalnızca bulduğu sorun sayısıyla değerlendirilmemelidir.
+The system should not be evaluated only by the number of problems it finds.
 
-Başarı beş ayrı boyutta ölçülmelidir.
+Success should be measured along five separate dimensions.
 
-**Detection Quality:** Bilerek oluşturulmuş sorunların ne kadarını bulabiliyor?
+**Detection Quality:** How many of the deliberately created problems can it find?
 
-**False Positive Control:** Gerçekte bulunmayan problemleri ne sıklıkla doğrulanmış olarak bildiriyor?
+**False Positive Control:** How often does it report problems that do not exist as verified?
 
-**Evidence Reliability:** Her önemli bulgu gerçek test ve dosya kayıtlarıyla destekleniyor mu?
+**Evidence Reliability:** Is every important finding supported by real tests and file records?
 
-**Experiment Reproducibility:** Sayısal deneyler aynı koşullarda tekrar üretilebiliyor mu?
+**Experiment Reproducibility:** Can numerical experiments be reproduced under the same conditions?
 
-**Remediation Quality:** Önerilen düzeltmeler bağımsız değerlendirme verisinde gerçekten iyileşme sağlıyor mu?
+**Remediation Quality:** Do the proposed fixes really deliver improvement on independent evaluation data?
 
-Başlangıç benchmark'ı için bilinen hatalara sahip sentetik projeler hazırlanmalıdır.
+Synthetic projects with known errors should be prepared as the initial benchmark.
 
-Örneğin 20 kontrollü problem senaryosu oluşturulabilir. Bunların bir bölümü gerçek hata, bir bölümü yanıltıcı ama hatasız senaryo olmalıdır.
+For example, 20 controlled problem scenarios could be created. Some should be real errors, others misleading but error-free scenarios.
 
-Agent'ın bunları ayırt etme başarısı ölçülür.
+The agent's success at telling them apart is measured.
 
-MVP kabul eşikleri ilk benchmark sonuçlarına göre kararlaştırılmalıdır; deney yapılmadan başarı oranı vaat edilmemelidir.
+MVP acceptance thresholds should be decided based on the first benchmark results; no success rate should be promised before experiments are done.
 
-# 12. Riskler ve Kontroller
+# 12. Risks and Controls
 
-**Risk 1 — Aşırı şüphecilik**
+**Risk 1 — Over-skepticism**
 
-Agent her yerde problem aradığı için yanlış bulgular oluşturabilir.
+Because the agent looks for problems everywhere, it may produce false findings.
 
-Kontrol: Kanıt statüleri, bağımsız doğrulama ve reddedilmiş hipotezlerin kayıt altına alınması.
+Control: Evidence statuses, independent verification and recording of rejected hypotheses.
 
-**Risk 2 — Gerçekçi olmayan amplification**
+**Risk 2 — Unrealistic amplification**
 
-5× bozulma gerçek hayatta mümkün olmayan bir senaryo oluşturabilir.
+A 5× corruption may create a scenario that is impossible in real life.
 
-Kontrol: Her deneyin gerçekçilik seviyesi, varsayımları ve fiziksel sınırları raporlanır.
+Control: The realism level, assumptions and physical limits of each experiment are reported.
 
-**Risk 3 — Test verisine aşırı uyum**
+**Risk 3 — Overfitting to test data**
 
-Agent çok sayıda düzeltme denerken test verisini dolaylı olarak optimizasyon için kullanabilir.
+While trying many fixes, the agent may indirectly use the test data for optimisation.
 
-Kontrol: Geliştirme backtest'leri ile son bağımsız değerlendirme dönemi ayrılır. Nihai değerlendirme verisi önceden dondurulur.
+Control: Development backtests and the final independent evaluation period are separated. The final evaluation data is frozen in advance.
 
-**Risk 4 — Yanlış nedensellik**
+**Risk 4 — Wrong causality**
 
-Bir değişkenin artmasıyla forecast hatasının artması, her zaman gerçek hayattaki neden-sonuç ilişkisini kanıtlamaz.
+The fact that forecast error rises as a variable increases does not always prove a real-world cause-effect relationship.
 
-Kontrol: Kontrollü müdahaleler, alternatif açıklamalar ve nedensel varsayımlar açıkça belgelenir.
+Control: Controlled interventions, alternative explanations and causal assumptions are documented explicitly.
 
-**Risk 5 — Kontrolsüz agent davranışı**
+**Risk 5 — Uncontrolled agent behaviour**
 
-Agent projeyi bozabilir, yanlış komut çalıştırabilir veya hassas verileri dışarı aktarabilir.
+The agent may break the project, run wrong commands or export sensitive data.
 
-Kontrol: Yerel sandbox, izinli araçlar, salt okunur kaynaklar, ağ kısıtlamaları ve insan onayı.
+Control: Local sandbox, allowed tools, read-only sources, network restrictions and human approval.
 
-# 13. Nihai Ürün Vizyonu
+# 13. Final Product Vision
 
-Proje tamamlandığında hedef, kullanıcının yalnızca bir ML/AI projesini seçerek denetim başlatabilmesidir.
+When the project is complete, the goal is for the user to be able to start an audit simply by selecting an ML/AI project.
 
-Örnek kullanım:
+Example usage:
 
-**Kullanıcı:** "Bu forecasting projesini denetle. Hataları bul, 2× ve 3× stres testleri uygula ve 12 aylık stok planına olası etkilerini göster."
+**User:** "Audit this forecasting project. Find the errors, apply 2× and 3× stress tests and show the possible effects on the 12-month stock plan."
 
-**Agent:** Projeyi tarar, hipotezleri önceliklendirir, deneyleri çalıştırır, bulguları doğrular ve sonuçları açıklanabilir bir rapora dönüştürür.
+**Agent:** Scans the project, prioritises hypotheses, runs experiments, verifies findings and turns the results into an explainable report.
 
-**Kullanıcı:** "En kritik iki sorunun çözümünü dene."
+**User:** "Try fixing the two most critical problems."
 
-**Agent:** Çözümü ayrı bir ortamda uygular, model performansını yeniden ölçer, yan etkileri inceler ve karşılaştırmalı sonuç üretir.
+**Agent:** Applies the fix in a separate environment, re-measures model performance, examines side effects and produces a comparative result.
 
-Uzun vadede sistem şu alanlara genişletilebilir:
+In the long term the system can be extended to:
 
-- Regression ve classification modelleri.
+- Regression and classification models.
 - Deep learning.
 - Time-series forecasting.
-- Optimizasyon algoritmaları.
-- LLM tabanlı uygulamalar.
-- RAG sistemleri.
-- AI agent ve multi-agent mimarileri.
+- Optimisation algorithms.
+- LLM-based applications.
+- RAG systems.
+- AI agent and multi-agent architectures.
 
-## Nihai Mimari Kararı
+## Final Architecture Decision
 
-**Sıfırdan özel bir agent harness geliştirilecek, ancak istatistiksel test ve veri işleme kütüphaneleri yeniden yazılmayacaktır.**
+**A custom agent harness will be built from scratch, but statistical testing and data processing libraries will not be rewritten.**
 
-İlk sürümde tek orchestrator agent, bağımsız Python modülleri, izole deney ortamı ve kanıt kayıt sistemi bulunacaktır.
+The first version will have a single orchestrator agent, independent Python modules, an isolated experiment environment and an evidence recording system.
 
-Çoklu agent mimarisi, görsel arayüz ve daha karmaşık otomasyonlar ancak ilk çekirdek sistemin başarılı şekilde doğrulanmasından sonra eklenecektir.
+A multi-agent architecture, a visual interface and more complex automation will be added only after the first core system has been successfully validated.
 
-Projenin merkezi ilkesi:
+The central principle of the project:
 
 **Assume nothing. Challenge everything. Amplify weaknesses. Verify the evidence. Predict the consequences. Test every fix.**
-
-*Hiçbir varsayımı sorgulamadan kabul etme. Zayıflıkları görünür hale getir. Kanıtları doğrula. Olası sonuçları hesapla. Her çözümü yeniden test et.*

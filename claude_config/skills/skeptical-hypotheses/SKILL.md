@@ -1,37 +1,37 @@
 ---
 name: skeptical-hypotheses
-description: Bir modelin raporlanan başarısını açıklayabilecek alternatif açıklamaları sistematik biçimde üretmek, her birine yanlışlama testi, tür (defect/sensitivity) ve öncelik vermek. Challenge fazında, pmi hypothesis add öncesinde kullan.
+description: Systematically generate alternative explanations for a model's reported success, giving each a falsification test, a kind (defect/sensitivity) and a priority. Use in the Challenge phase, before pmi hypothesis add.
 ---
 
 # Skeptical hypotheses
 
-## Temel hareket
-"Model iyi çalışıyor" iddiasını bir **gözlem** olarak al ve onu üretebilecek tüm mekanizmaları listele. Gerçek öğrenme bunlardan yalnızca biridir. Diğerleri sızıntı, kolay test seti, yanlış metrik, sansürlü hedef ve benzerleridir.
+## The core move
+Treat "the model works well" as an **observation** and list every mechanism that could produce it. Real learning is only one of them. The others are leakage, an easy test set, the wrong metric, a censored target, and so on.
 
-Aileler ve her ailenin tipik testi: `references/failure-catalog.md`
+Families and the typical test for each: `references/failure-catalog.md`
 
-## Hipotez kalitesi kontrol listesi
-- [ ] **Test edilebilir:** Hangi `pmi` deneyiyle sınanacağı belli.
-- [ ] **Yanlışlanabilir:** `--falsification` alanında hangi sonucun hipotezi öldüreceği yazılı.
-- [ ] **Mekanizmalı:** "Neden" sorusu kod veya veri yolu üzerinden açıklanmış.
-- [ ] **Kaynaklı:** `--refs` alanında dosya:satır var (statik şüpheden geliyorsa onun konumu).
-- [ ] **Doğru tür seçilmiş:** `defect` = "bu kusur projede şu an var" (Verified olabilir). `sensitivity` = "koşul büyürse model kırılır" (en fazla Simulated).
-- [ ] **Projenin dilinde:** Kavram uydurulmamış.
+## Hypothesis quality checklist
+- [ ] **Testable:** it is clear which `pmi` experiment will test it.
+- [ ] **Falsifiable:** `--falsification` states which result kills the hypothesis.
+- [ ] **Mechanistic:** the "why" is explained through a code or data path.
+- [ ] **Sourced:** `--refs` has file:line (the location of the static suspicion, if it came from one).
+- [ ] **Right kind:** `defect` = "this defect is in the project right now" (can be Verified). `sensitivity` = "the model breaks if the condition grows" (at most Simulated).
+- [ ] **In the project's language:** no invented concepts.
 
-## Önceliklendirme (1 = en yüksek)
-`öncelik ≈ etki × olasılık × test edilebilirlik`
-- **Etki:** Değerlendirmeyi geçersiz kılar mı (P1)? İş kararını değiştirir mi (P2)? Kozmetik mi (P4–5)?
-- **Olasılık:** Statik bir işaret, veri gözlemi veya yapısal bir neden var mı?
-- **Test edilebilirlik:** Mevcut check/injector ile şimdi test edilebiliyor mu?
+## Prioritisation (1 = highest)
+`priority ≈ impact × likelihood × testability`
+- **Impact:** does it invalidate the evaluation (P1)? Change a business decision (P2)? Cosmetic (P4–5)?
+- **Likelihood:** is there a static signal, a data observation or a structural reason?
+- **Testability:** can it be tested now with the existing checks/injectors?
 
-## Tuzaklar (false positive kontrolü)
-Her turda en az bir "şüpheli görünüyor ama muhtemelen meşru" durumu kayda al. Bunlar Rejected çıkmalıdır. Rejected çıkmazsa ya senin yargın ya da test yanlıştır. İki örnek:
-- Geçmiş değerden türetilmiş lag feature ile target arasındaki yüksek korelasyon
-- ID benzeri ama modele girmeyen bir sütun
+## Decoys (false-positive control)
+In every round, register at least one "looks suspicious but is probably legitimate" case. These should come out Rejected. If they don't, either your judgement or the test is wrong. Two examples:
+- High correlation between a lag feature derived from past values and the target
+- An ID-like column that does not enter the model
 
-## Kayıt
+## Registration
 ```
 pmi hypothesis add --title "..." --statement "..." --mechanism "..." --expected "..." \
   --falsification "..." --kind defect|sensitivity --priority N --refs file.py:12 --affected "..."
 ```
-Düzeltme fikrin varsa `--fix` ile ekle. Bu bir **öneridir** ve raporda "test edilmedi" etiketiyle görünür.
+If you have a fix idea, add it with `--fix`. It is a **proposal** and appears in the report labelled "untested".

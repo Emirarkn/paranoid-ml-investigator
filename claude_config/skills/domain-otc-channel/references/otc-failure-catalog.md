@@ -1,23 +1,23 @@
-# OTC kanal hata kataloğu
+# OTC channel failure catalog
 
-Her ailede şu bilgiler var: genel katalogdaki karşılığı (`skeptical-hypotheses/references/failure-catalog.md`), işaretleri, yanlışlama testi ve bugünkü araç durumu.
+For each family: its counterpart in the general catalog (`skeptical-hypotheses/references/failure-catalog.md`), signals, falsification test and current tool status.
 
-| # | Aile | Genel karşılık | İşaret | Yanlışlama testi | Araç |
+| # | Family | General counterpart | Signal | Falsification test | Tool |
 |---|---|---|---|---|---|
-| O1 | Sell-in'in talep diye modellenmesi | B2 vekil hedef | Target sütunu depo yüklemesi, ama karar tüketici talebiyle ilgili | Kullanıcı target'ın karar ihtiyacıyla aynı olduğunu onaylarsa çürür | İnsan sorusu → Suspected / Rejected |
-| O2 | Stok kesintisinde satış = talep | B1 sansürlü hedef | Stok işareti veya sıfır satış dizileri; kesinti sonrasında sıçrama | Kesinti satırları çıkarıldığında model hatası ve bias değişmiyorsa çürür | Kısmen: segment metriği yok (Aşama 5) |
-| O3 | Kanal stoku dalgası | B1 + C2 | Fiyat artışı veya kampanya öncesinde sell-in zirvesi, ardından birkaç dönem düşük sell-in; sell-out düz | Sell-in ile sell-out arasındaki fark birikimli olarak sıfır etrafında dolaşıyorsa çürür | Veri analizi, Suspected |
-| O4 | Sell-out / panel gecikmesi | A2 / D4 | Pazar verisi dönem sonundan sonra geliyor, ama feature olarak aynı dönemde kullanılıyor | `amplify time_lag` ile gecikme gerçek değerine çekildiğinde EAF ≈ 1 ise çürür | ✅ `time_lag` |
-| O5 | Kampanya takvimi sızıntısı | A2 | Kampanya feature'ı fiilen gerçekleşen kampanyadan türetilmiş (plan değil) | `feature_availability` = known_at_prediction onaylanırsa çürür | İnsan sorusu + ablation |
-| O6 | Tek sezona aşırı uyum | B4 | Test dönemi tek bir sezonu kapsıyor | Rolling-origin ile farklı sezonlarda hata benzerse çürür | Aşama 5 (walk-forward) |
-| O7 | İade ve düzeltme satırları | C2 | Negatif miktarlar, dönem sonu düzeltmeleri | Negatif satırlar çıkarıldığında metrik değişmiyorsa çürür | Veri taraması (`share_negative`) |
-| O8 | Yeni ürün etkisi | B4 | Geçmişi kısa entity'ler toplam metriği bozuyor | Segment metriği (Aşama 5) | Suspected |
-| O9 | Depo / bölge toplulaştırma uyumsuzluğu | B4 | Model ulusal seviyede, karar depo seviyesinde | Karar seviyesi profil ile aynıysa çürür | İnsan sorusu |
+| O1 | Sell-in modelled as demand | B2 proxy target | Target column is wholesaler loading, but the decision concerns consumer demand | Refuted if the user confirms the target matches the decision need | Human question → Suspected / Rejected |
+| O2 | Sales during stockout = demand | B1 censored target | Stock flag or runs of zero sales; jump after the stockout | Refuted if model error and bias do not change when stockout rows are removed | Partial: no segment metric yet (stage 5) |
+| O3 | Channel stock wave | B1 + C2 | Sell-in peak before a price increase or promotion, then several low sell-in periods; sell-out flat | Refuted if the cumulative sell-in minus sell-out gap oscillates around zero | Data analysis, Suspected |
+| O4 | Sell-out / panel delay | A2 / D4 | Market data arrives after period end but is used as a feature in the same period | Refuted if `amplify time_lag` at the real delay gives EAF ≈ 1 | ✅ `time_lag` |
+| O5 | Promotion calendar leakage | A2 | Promotion feature derived from executed promotions (not the plan) | Refuted if `feature_availability` = known_at_prediction is confirmed | Human question + ablation |
+| O6 | Overfitting to a single season | B4 | The test period covers a single season | Refuted if rolling-origin errors are similar across seasons | Stage 5 (walk-forward) |
+| O7 | Returns and correction rows | C2 | Negative quantities, period-end corrections | Refuted if the metric does not change when negative rows are removed | Data scan (`share_negative`) |
+| O8 | New product effect | B4 | Entities with short history distort the aggregate metric | Segment metric (stage 5) | Suspected |
+| O9 | Wholesaler / region aggregation mismatch | B4 | Model at national level, decision at wholesaler level | Refuted if the decision level equals the profile level | Human question |
 
-## Kanal için tipik stres senaryoları (amplify)
-| Senaryo | Injector | Gerçekçilik notu |
+## Typical stress scenarios for the channel (amplify)
+| Scenario | Injector | Realism note |
 |---|---|---|
-| Sell-out raporu eksik gelir (bazı depolar raporlamaz) | `missing` (sell-out feature'ları, `where=test`) | 5× çoğu zaman gerçekçi değildir, sınırı raporda yaz |
-| Panel verisi 1–3 dönem gecikir | `time_lag` | Gerçek gecikmeyi insandan öğren |
-| Fiyat şoku | `shift` (fiyat endeksi, multiplicative) | Fiyatlar düzenleniyorsa sınırları kullanıcıya sor |
-| Kampanya bilgisi kaybolur | `ablation` (kampanya feature'ı) | — |
+| Sell-out report arrives incomplete (some wholesalers don't report) | `missing` (sell-out features, `where=test`) | 5× is often unrealistic; write the limit in the report |
+| Panel data arrives 1–3 periods late | `time_lag` | Learn the real delay from the human |
+| Price shock | `shift` (price index, multiplicative) | If prices are regulated, ask the user for the bounds |
+| Promotion information is lost | `ablation` (promotion feature) | — |

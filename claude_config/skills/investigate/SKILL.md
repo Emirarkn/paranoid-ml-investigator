@@ -1,45 +1,45 @@
 ---
 name: investigate
-description: PMI ana oyun kitabı. Bir ML/AI projesini baştan sona denetlemek için fazları, kapıları, bütçe yönetimini ve durma koşullarını tanımlar. "Bu projeyi denetle", "hataları bul", "stres testi uygula" gibi isteklerde ilk yüklenecek skill.
+description: PMI master playbook. Defines the phases, gates, budget management and stop conditions for auditing an ML/AI project end to end. Load first for requests like "audit this project", "find the bugs", "run stress tests".
 ---
 
-# Investigate — uçtan uca denetim
+# Investigate — end-to-end audit
 
-## Ön kontrol
-1. `pmi status`. Aktif bir run varsa kaldığı yerden devam et.
-2. Run yoksa kullanıcıdan hedef klasörü iste ve `pmi init --target "<klasör>"` çalıştır. Bu bir insan kapısıdır.
-3. Kullanıcının isteğini **araştırma sorularına** çevir ve `runs/<id>/notes/plan.md` dosyasına yaz. Örneğin "hataları bul, 2× ve 3× stres testi uygula" şunlara dönüşür: (a) değerlendirme geçerli mi? (b) hangi koşullar 2×/3× büyüyünce performans kabul edilemez olur?
+## Pre-flight
+1. `pmi status`. If a run is active, continue where it left off.
+2. If there is no run, ask the user for the target folder and run `pmi init --target "<folder>"`. This is a human gate.
+3. Turn the user's request into **research questions** and write them to `runs/<id>/notes/plan.md`. For example, "find the bugs, run 2× and 3× stress tests" becomes: (a) is the evaluation valid? (b) which conditions make performance unacceptable when grown 2×/3×?
 
-## Faz akışı ve çıkış kriterleri
+## Phase flow and exit criteria
 
-| Faz | Çıkış kriteri (bir sonraki faza geçmeden önce) |
+| Phase | Exit criterion (before moving to the next phase) |
 |---|---|
-| Discover | `target`, `task_type`, `data_source` onaylı. Zaman serisiyse `time_column`, `entity_keys` de onaylı. Onaysız alanlar ve nedenleri listelendi. |
-| Bağla | `pmi adapter validate` başarılı. `pmi baseline` çalıştı. Fidelity `confirmed` oldu veya insan onayı alındı. Olmadıysa nedeni raporlandı. |
-| Challenge | 4–8 önceliklendirilmiş hipotez kayıtlı. Her birinin yanlışlama testi var. En az biri tuzak kontrolü. |
-| Experiment | P1–P2 hipotezlerin her biri için en az bir ön-kayıtlı deney çalıştı. |
-| Amplify | Doğrulanmış kusurlar ve kritik girdiler için severity ladder çalıştı. Varsa eşik bulundu. |
-| Verify | Deneyi olan her hipotez için `pmi verify` çalıştı. P1–P2 Verified/Simulated bulgular `evidence-verifier` incelemesinden geçti. |
-| Report | `pmi report` üretildi. `notes/findings.md` yazıldı ve `pmi check-claims` temiz. |
+| Discover | `target`, `task_type`, `data_source` confirmed. For time series, `time_column` and `entity_keys` are confirmed too. Unconfirmed fields and the reasons are listed. |
+| Connect | `pmi adapter validate` succeeded. `pmi baseline` ran. Fidelity became `confirmed` or human confirmation was obtained; otherwise the reason is reported. |
+| Challenge | 4–8 prioritised hypotheses registered, each with a falsification test. At least one is a decoy check. |
+| Experiment | At least one pre-registered experiment ran for each P1–P2 hypothesis. |
+| Amplify | Severity ladders ran for verified defects and critical inputs. The threshold was found where possible. |
+| Verify | `pmi verify` ran for every hypothesis with an experiment. P1–P2 Verified/Simulated findings went through `evidence-verifier` review. |
+| Report | `pmi report` generated. `notes/findings.md` written and `pmi check-claims` is clean. |
 
-## Öncelik kuralı
-Önce değerlendirmenin kendisini denetle (leakage, split, baseline reproduction), sonra dayanıklılığı (amplification). Geçersiz bir değerlendirme üzerinde yapılan stres testinin anlamı yoktur. Rapor bu sırayla yazılır.
+## Priority rule
+Audit the evaluation itself first (leakage, split, baseline reproduction), robustness (amplification) second. A stress test on top of an invalid evaluation means nothing. The report is written in this order.
 
-## Bütçe
-- `pmi budget show` komutunu her 10 deneyde bir çalıştır.
-- Bütçe dolarsa dur. Ne öğrendiğini, neyin açık kaldığını ve kaç deney daha gerektiğini insana yaz.
+## Budget
+- Run `pmi budget show` every 10 experiments.
+- When the budget is exhausted, stop. Tell the human what you learned, what remains open and how many more experiments are needed.
 
-## Durma koşulları
-- `pmi integrity` veya hash zinciri bozuldu → dur, insana bildir.
-- Adapter projeyi taklit edemiyor (validate başarısız, fidelity mismatch) → model tabanlı deneyleri durdur. Yalnızca statik ve veri check'leriyle devam et ve bunu açıkça raporla.
-- Kullanıcının sorusu cevaplandı ve kalan hipotezlerin beklenen değeri düşük → bitir.
+## Stop conditions
+- `pmi integrity` or the hash chain is broken → stop and tell the human.
+- The adapter cannot mirror the project (validate fails, fidelity mismatch) → stop model-based experiments. Continue only with static and data checks, and report this explicitly.
+- The user's question is answered and the expected value of the remaining hypotheses is low → finish.
 
-## Oturumlar arası süreklilik
-Her fazın sonunda `runs/<id>/notes/progress.md` dosyasına tarihli, kısa bir not ekle: ne yapıldı, sıradaki adım ne, hangi insan kararı bekleniyor. Yeni oturumda önce bu dosyayı oku.
+## Continuity across sessions
+At the end of each phase, append a short dated note to `runs/<id>/notes/progress.md`: what was done, what's next, which human decision is pending. In a new session, read this file first.
 
-## Kapanış mesajı (kullanıcıya)
-1. Değerlendirme geçerli mi? (Verified kusurlar)
-2. En kritik 3 bulgu, statüleriyle
-3. Dayanıklılık profili: hangi koşul, hangi seviyede, hangi EAF (Simulated)
-4. Test edilmemiş öneriler ve sonraki adımlar
-5. `runs/<id>/report.md` yolu
+## Closing message (to the user)
+1. Is the evaluation valid? (Verified defects)
+2. The 3 most critical findings, with statuses
+3. Robustness profile: which condition, at which level, which EAF (Simulated)
+4. Untested proposals and next steps
+5. Path to `runs/<id>/report.md`

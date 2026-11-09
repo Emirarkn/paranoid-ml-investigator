@@ -1,35 +1,35 @@
 ---
 name: project-profiling
-description: Bir projeyi domain varsayımı olmadan öğrenmek ve profil alanlarını (target, zaman ekseni, birim, değerlendirme protokolü, metrik, iş bağlamı) kanıtla doldurup insana onaylatmak; ardından projeyi taklit eden pmi_adapter.py yazmak. Discover ve Bağla fazlarında kullan.
+description: Learn a project without domain assumptions, fill the profile fields (target, time axis, unit, evaluation protocol, metric, business context) with evidence and have a human confirm them; then write a pmi_adapter.py that mirrors the project. Use in the Discover and Connect phases.
 ---
 
 # Project profiling + adapter
 
-## Neden önemli
-PMI hiçbir projeye hazır kavramla gelmez. "Haftalık", "mağaza", "müşteri" gibi her şey **bu projeden** öğrenilir. Onaysız profil alanına ihtiyaç duyan analizleri `pmi` bloke eder. Bu engel bir hata değil, tasarımın kendisidir.
+## Why it matters
+PMI brings no ready-made concepts to any project. "Weekly", "store", "customer" — everything is learned **from this project**. `pmi` blocks analyses that need an unconfirmed profile field. That block is not a bug; it is the design.
 
-## Adımlar
-1. `pmi scan` çalıştır. Envanter, tablo taraması ve AST kod taraması üretir ve aday değerleri kanıtlarıyla doldurur.
-2. Projeyi derinlemesine anlamak için `project-cartographer` subagent'ını çalıştır.
-3. Adayları kod ve veriyle çapraz kontrol et:
-   - Tarama "temporal" diyor ama kod tarihi hiç kullanmıyorsa → bu çelişkiyi soru olarak yaz.
-   - Birden fazla target adayı varsa → hangisi raporlanan metriğe giriyor?
-   - Grain "irregular" ise → olaylar mı, eksik dönemler mi? Veriye bak.
-4. **Onay paketini** tek mesajda insana sun. Her alan için değer, kanıt ve "bunu onaylarsan şu analizler açılır" bilgisini ver.
-5. Her onay için: `pmi profile set <alan> '<değer>' --evidence "<dosya:satır | veri gözlemi | user: ...>"`
-   - Liste ve sözlükleri JSON olarak ver: `'["store_code"]'`, `'{"metric":"mae","value":4.30,"source":"train.py output"}'`
-   - Zaman ekseni yoksa `time_column` için `none` ve `entity_keys` için `[]` değerlerini açıkça onaylat.
-6. `reported_metric`: projenin kendi iddia ettiği performans. Rapor dosyası, README, notebook çıktısı veya script çıktısında bulunur. Bulamazsan uydurma, insana sor.
+## Steps
+1. Run `pmi scan`. It produces an inventory, a table scan and an AST code scan, and fills candidate values with evidence.
+2. Run the `project-cartographer` subagent to understand the project in depth.
+3. Cross-check the candidates against code and data:
+   - The scan says "temporal" but the code never uses the date → write this contradiction as a question.
+   - Several target candidates → which one feeds the reported metric?
+   - Grain is "irregular" → events, or missing periods? Look at the data.
+4. Present the **confirmation package** to the human in a single message. For each field give the value, the evidence, and "if you confirm this, these analyses unlock".
+5. For each confirmation: `pmi profile set <field> '<value>' --evidence "<file:line | data observation | user: ...>"`
+   - Give lists and dicts as JSON: `'["store_code"]'`, `'{"metric":"mae","value":4.30,"source":"train.py output"}'`
+   - If there is no time axis, explicitly confirm `none` for `time_column` and `[]` for `entity_keys`.
+6. `reported_metric`: the performance the project itself claims. Found in report files, the README, notebook outputs or script output. If you cannot find it, do not invent it; ask the human.
 
-## Adapter yazımı
-Sözleşme ve örnek: `references/adapter-contract.md`. Kısaca:
-- `runs/<id>/workspace/pmi_adapter.py` dosyasını düzenle. Bu dosya senin yazabildiğin tek çalıştırılabilir dosyadır.
-- Projenin **kendi** veri okuma, split, preprocessing ve model adımlarını taklit et. Projeyi düzeltme. Hata varsa o hatayı da aynen kopyala, çünkü denetleyeceğimiz şey projenin kendisi.
-- Her metodun `sources` girdisine `dosya:satır` yaz.
-- `split()` index etiketlerini döndürmeli, `reset_index` kullanılmamalı.
-- `fit(train_df, seed)`: `seed=0` projenin kendi konfigürasyonunu (ör. random_state) birebir vermeli. Diğer seed'ler gürültü ölçümü içindir.
-- Ardından `pmi adapter validate` çalıştır. Bu bir insan kapısıdır, çünkü proje kodu ilk kez çalışır. Sonra `pmi baseline` çalıştır.
-  - Fidelity `confirmed` → devam.
-  - `mismatch` → farkı açıkla. Sebep adapter mı (taklit hatası), yoksa proje raporu mu (rapor farklı veri/kodla üretilmiş)? Kanıtlamadan karar verme.
-  - Raporlanmış metrik yoksa → insana sor. `pmi adapter confirm --evidence "..."` yalnızca insan adapter'ı satır satır kontrol ettiyse kullanılır.
-- Projenin çalıştırılabilir bir pipeline'ı yoksa (sadece veri varsa): `pmi adapter validate --surrogate '<json>'`. Bu durumda sonuçlar projenin modelini değil, bir vekil modeli anlatır ve en fazla Simulated olur.
+## Writing the adapter
+Contract and examples: `references/adapter-contract.md`. In short:
+- Edit `runs/<id>/workspace/pmi_adapter.py`. It is the only executable file you can write.
+- Mirror the project's **own** data loading, split, preprocessing and model steps. Do not fix the project. If there is a bug, copy it as-is, because the project itself is what we audit.
+- Write `file:line` in the `sources` entry of each method.
+- `split()` must return index labels; no `reset_index`.
+- `fit(train_df, seed)`: `seed=0` must reproduce the project's own configuration exactly (e.g. random_state). Other seeds are for noise measurement.
+- Then run `pmi adapter validate`. This is a human gate, because project code runs for the first time. Then run `pmi baseline`.
+  - Fidelity `confirmed` → continue.
+  - `mismatch` → explain the gap. Is the cause the adapter (mirroring error) or the project report (produced with different data/code)? Do not decide without evidence.
+  - No reported metric → ask the human. `pmi adapter confirm --evidence "..."` is used only if the human checked the adapter line by line.
+- If the project has no runnable pipeline (data only): `pmi adapter validate --surrogate '<json>'`. Results then describe a surrogate model, not the project's model, and are at most Simulated.

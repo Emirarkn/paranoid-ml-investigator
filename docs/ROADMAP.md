@@ -1,22 +1,23 @@
-# Roadmap durumu
+# Roadmap status
 
-| Aşama | Kapsam | Durum | Kabul kriteri nasıl test ediliyor |
+| Stage | Scope | Status | How the acceptance criterion is tested |
 |---|---|---|---|
-| 1 Foundation | run, snapshot, workspace kopyası, integrity, CLI, policy | ✅ | `tests/test_foundation.py`: hedef hash'leri değişmiyor, değişiklik yakalanıyor, secret dosyaları kopyalanmıyor |
-| 2 Structural Intelligence | inventory, data scan, AST code scan, profil (aday → onay) | ✅ | `tests/test_profiling.py`: iki farklı sözlüklü projede target, zaman, grain, entity ve task doğru aday; şemada domain kelimesi yok |
-| 3 Hypothesis & Evidence | ledger, ön-kayıt, verify, tavanlar, hash zinciri | ✅ | `tests/test_evidence.py`: Suspected/Verified/Rejected karışmıyor, tamper yakalanıyor, fidelity kapısı çalışıyor |
-| 4 Amplification MVP | missing, outliers/shift, time_lag, ablation; EAF; eşik | ✅ (MVP) | `tests/test_amplification.py`: göreli/mutlak merdiven, limit bayrağı, aynı seed ile aynı sayılar, bağımsız yeniden hesap |
-| 5 Consequence | rolling-origin backtest, segment metrikleri, iş simülasyonu (senaryo A/B/C, Monte Carlo) | ⏳ | — |
-| 6 Repair & Retest | `workspace/repairs/<fix>` izole kopyalarda düzeltme, counterfactual karşılaştırma, yan etki taraması | ⏳ | — |
-| 7 Agent Red Team | yanıltıcı doküman, sahte metrik ve bozuk referans içeren benchmark; claim-checker sertleştirme | 🟡 temel `check-claims` var | — |
-| OTC paketi | kanal skill'i, hata kataloğu, sentetik benchmark | ✅ v0.1 (bilgi katmanı) | `tests/test_profiling.py` (otc testleri) |
-| 8 Hardening | büyük dosya, kesilen işlem toparlama, performans, HTML rapor | ⏳ | — |
+| 1 Foundation | run, snapshot, workspace copy, integrity, CLI, policy | ✅ | `tests/test_foundation.py`: target hashes unchanged, modifications detected, secret files not copied |
+| 2 Structural Intelligence | inventory, data scan, AST code scan, profile (candidate → confirmed) | ✅ | `tests/test_profiling.py`: correct target, time, grain, entity and task candidates across projects with different vocabularies; no domain words in the schema |
+| 3 Hypothesis & Evidence | ledger, pre-registration, verify, caps, hash chain | ✅ | `tests/test_evidence.py`: Suspected/Verified/Rejected never mix, tampering detected, fidelity gate works |
+| 4 Amplification MVP | missing, outliers/shift, time_lag, ablation; EAF; threshold | ✅ (MVP) | `tests/test_amplification.py`: relative/absolute ladders, limit flag, identical numbers for identical seeds, independent recompute |
+| OTC pack | channel skill, failure catalog, synthetic benchmark | ✅ v0.1 (knowledge layer) | `tests/test_profiling.py` (OTC tests) |
+| 5 Consequence | rolling-origin backtest, segment metrics, business simulation (scenarios A/B/C, Monte Carlo) | ⏳ | — |
+| 6 Repair & Retest | fixes in isolated copies `workspace/repairs/<fix>`, counterfactual comparison, side-effect scan | ⏳ | — |
+| 7 Agent Red Team | benchmark with misleading docs, fake metrics, broken references; hardened claim checker | 🟡 basic `check-claims` exists | — |
+| 8 Hardening | large files, recovery from interrupted runs, performance, HTML report | ⏳ | — |
 
-## Aşama 4'ten kalan genişletmeler
-- Stockout / sansürlü hedef injector'ü. Bunun için profilde "kısıt göstergesi" alanı gerekir ve bu alan domain-bağımsız tanımlanmalıdır.
-- Leakage kapsamı amplification: sızıntılı bilginin oranını değiştirmek
-- Alt grup temsili (bias) injector'ü
-- Birleşik senaryolar: iki injector'ün birlikte uygulanması
+## Remaining extensions from stage 4
+- Stockout / censored target injector. Needs a "constraint indicator" field in the profile, defined in a domain-agnostic way.
+- Leakage-scope amplification: varying the share of leaked information
+- Subgroup representation (bias) injector
+- Compound scenarios: two injectors applied together
+- Day-first / decimal-comma parsing for localised CSV and Excel files
 
-## Benchmark (Bölüm 11)
-`examples/make_examples.py` iki sentetik proje üretir: gerçek kusurlar ve tuzaklar içerir, cevap anahtarı gizlidir. Hedef 20 senaryoya çıkmak. MVP eşikleri ilk benchmark sonuçlarından sonra belirlenecek.
+## Benchmark (section 11)
+`examples/make_examples.py` generates three synthetic projects with real defects and decoys; the answer key is hidden. The goal is 20 scenarios. MVP thresholds will be set after the first benchmark results.
