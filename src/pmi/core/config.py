@@ -24,7 +24,7 @@ def harness_root(start: Path | None = None) -> Path:
             return p
     raise PMIError(
         "Harness root not found (no config/policy.yaml above the current directory). "
-        "Run pmi from inside the paranoid-ml-investigator folder or set PMI_HOME."
+        "Run pmi from inside the harness folder (the one with config/policy.yaml) or set PMI_HOME."
     )
 
 
