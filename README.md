@@ -2,7 +2,7 @@
   <img src="docs/assets/pmi-logo.jpg" alt="Paranoid ML Investigator" width="520">
 </p>
 
-# Paranoid ML Investigator
+# ml-skeptic — Paranoid ML Investigator
 
 ML/AI projelerini bağımsız denetleyen, şüpheci bir agent ve onun deterministik harness'ı.
 
@@ -13,8 +13,8 @@ ML/AI projelerini bağımsız denetleyen, şüpheci bir agent ve onun determinis
 
 ## Kurulum (Windows / PowerShell)
 ```powershell
-git clone https://github.com/Emirarkn/paranoid-ml-investigator.git
-cd paranoid-ml-investigator
+git clone https://github.com/Emirarkn/ml-skeptic.git
+cd ml-skeptic
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e ".[dev,excel]"
