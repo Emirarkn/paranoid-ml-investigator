@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/pmi-logo.jpg" alt="Paranoid ML Investigator" width="520">
+</p>
+
 # Paranoid ML Investigator
 
 ML/AI projelerini bağımsız denetleyen, şüpheci bir agent ve onun deterministik harness'ı.
