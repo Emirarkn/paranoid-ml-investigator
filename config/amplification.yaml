@@ -1,0 +1,24 @@
+# Failure amplification settings.
+# Principle: the CAUSE (condition) is amplified, never the error itself.
+# 1x = the project's data as it is (measured base condition). Nx = condition scaled to N * base.
+severity_multipliers: [1, 2, 3, 5]
+default_replicates: 3
+
+# When the measured base condition is 0 (e.g. no missing values at all), "2x of zero" is
+# meaningless. The harness then uses an ABSOLUTE ladder and labels levels A1, A2, A3 —
+# never as "2x/3x/5x" — so the report does not overstate the relationship.
+absolute_ladders:
+  missing: [0.05, 0.10, 0.25]          # share of cells missing in selected columns
+  outliers: [0.01, 0.02, 0.05]         # share of rows turned into outliers
+  shift: [0.25, 0.50, 1.00]            # mean shift in units of the column's std
+  time_lag: [1, 2, 3, 5]               # periods of staleness (base is always 0 periods)
+
+# Physical / logical limits. Levels beyond these are clamped and flagged "limit_exceeded".
+limits:
+  missing_rate_max: 0.95
+  outlier_fraction_max: 0.50
+  shift_std_max: 5.0
+
+outliers:
+  detection_z_mad: 5.0                 # base-condition outlier definition (robust z, MAD)
+  injection_magnitude_mad: 10.0        # injected outlier distance from median, in MADs

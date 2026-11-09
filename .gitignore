@@ -1,0 +1,10 @@
+runs/*
+!runs/.gitkeep
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+examples/projects/
+*.pyc
+.claude/settings.local.json
+.claude/

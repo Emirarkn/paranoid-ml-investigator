@@ -1,0 +1,36 @@
+# Harness policy — enforced by Python (pmi), not by the LLM.
+# The agent cannot edit this file (guard hook + permissions). Change it yourself.
+version: 1
+
+target:
+  read_only: true               # original project is never written; integrity is hash-checked
+  exclude_dirs: [.git, __pycache__, .venv, venv, env, node_modules, .ipynb_checkpoints,
+                 .mypy_cache, .pytest_cache, .idea, .vscode]
+  exclude_globs: ["*.env", ".env*", "*.pem", "*.key", "*secret*", "*credential*"]
+  max_file_mb_for_copy: 200     # larger files are hashed but not copied into the workspace
+  max_total_mb_for_copy: 2000
+
+execution:
+  network: blocked              # blocked | allowed  (socket guard inside the experiment worker)
+  timeout_seconds_per_experiment: 900
+  max_rows_loaded_for_scan: 200000
+
+budgets:
+  max_experiments_per_run: 60
+  max_wall_minutes_per_run: 480
+  max_replicates: 10
+
+evidence:
+  min_replicates_for_simulated: 3
+  independent_recompute_rel_tol: 1.0e-6
+  noise_multiplier: 2.0          # an effect must exceed noise_multiplier x replicate noise
+  baseline_reproduction_rel_tol: 0.02
+
+# Operations where the agent must stop and get a human decision.
+# These are mirrored as "ask" rules in .claude/settings.json.
+human_gates:
+  - run_initialisation            # pmi init  (which project is investigated)
+  - profile_field_confirmation    # pmi profile set
+  - first_execution_of_target_code  # pmi adapter validate
+  - adapter_fidelity_confirmation # pmi adapter confirm
+  - budget_increase               # pmi budget extend

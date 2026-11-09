@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(pmi status:*)",
+      "Bash(pmi runs:*)",
+      "Bash(pmi scan:*)",
+      "Bash(pmi profile show:*)",
+      "Bash(pmi profile require:*)",
+      "Bash(pmi adapter show:*)",
+      "Bash(pmi hypothesis:*)",
+      "Bash(pmi experiment:*)",
+      "Bash(pmi baseline:*)",
+      "Bash(pmi verify:*)",
+      "Bash(pmi report:*)",
+      "Bash(pmi check-claims:*)",
+      "Bash(pmi integrity:*)",
+      "Bash(pmi checks:*)",
+      "Bash(pmi injectors:*)",
+      "Bash(pmi budget show:*)",
+      "Bash(python -m pytest:*)",
+      "Write(runs/*/workspace/pmi_adapter.py)",
+      "Edit(runs/*/workspace/pmi_adapter.py)",
+      "Write(runs/*/workspace/scratch/**)",
+      "Edit(runs/*/workspace/scratch/**)",
+      "Write(runs/*/notes/**)",
+      "Edit(runs/*/notes/**)"
+    ],
+    "ask": [
+      "Bash(pmi init:*)",
+      "Bash(pmi use:*)",
+      "Bash(pmi profile set:*)",
+      "Bash(pmi adapter validate:*)",
+      "Bash(pmi adapter confirm:*)",
+      "Bash(pmi budget extend:*)",
+      "Bash(python:*)",
+      "Bash(git:*)"
+    ],
+    "deny": [
+      "WebFetch",
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(Invoke-WebRequest:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(python -m pip:*)",
+      "Bash(conda:*)",
+      "Bash(npm:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(rm:*)",
+      "Bash(del:*)",
+      "Bash(rmdir:*)",
+      "Bash(Remove-Item:*)",
+      "Bash(sqlite3:*)",
+      "Bash(git push:*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/_answer_key.json)",
+      "Write(runs/*/ledger.sqlite)",
+      "Edit(runs/*/ledger.sqlite)",
+      "Write(runs/*/artifacts/**)",
+      "Edit(runs/*/artifacts/**)",
+      "Write(runs/*/workspace/target/**)",
+      "Edit(runs/*/workspace/target/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
