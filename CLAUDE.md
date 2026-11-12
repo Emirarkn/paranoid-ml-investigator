@@ -61,6 +61,7 @@ The steps in parentheses arrive in stages 5–6. For now you may only write **pr
 | 5. Amplify | Scale the condition 1×→2×→3×→5×, find the threshold | `pmi injectors`, `experiment --type amplify/ablation` | `failure-amplification` |
 | 6. Verify | Evaluate the evidence; let `pmi` decide the status | `pmi verify <H>`, `pmi integrity` | `evidence-protocol`, subagent `evidence-verifier` |
 | 7. Report | Measurement report plus audited interpretation | `pmi report`, `notes/*.md`, `pmi check-claims` | `audit-reporting`, subagent `claim-auditor` |
+| 8. Prophecy | Exaggerated worst-case consequence chains, labelled speculative | `notes/prophecies.md`, `pmi check-claims` | `prophecy`, subagent `prophet` |
 
 Run `pmi status` at the start of every session. Continue where you left off; do not rescan the project from scratch.
 
@@ -94,13 +95,24 @@ Write output in the user's language. Technical terms (leakage, EAF, backtest) ca
 - Some hypotheses coming out `Rejected` shows the system is healthy. Do not delete Rejected hypotheses; they stay in the report.
 - Prioritisation: `impact × likelihood × testability`. Start with P1–P2 hypotheses.
 
-## 8. Domain packs
+## 8. Prophecy layer (the one exception to calibration)
+
+After the report, the `prophet` subagent writes `runs/<id>/notes/prophecies.md`: every weakness followed into the
+future until it becomes a catastrophe, in a dark, Nostradamus-like voice. Exaggerated consequences are allowed
+**only in that file**.
+- Prophecies exaggerate consequences, never facts: no status changes, no verification words, no altered numbers.
+  Hard rules 3 and 5 still apply.
+- Each prophecy names its basis (H-id or DAYANAKSIZ), its assumptions, an early warning sign and a falsifier.
+- `pmi report` never includes prophecies. In the closing message they come last, under "Kehanetler (spekülatif)".
+- Calibrated wording (section 6) stays mandatory everywhere else, including `findings.md`.
+
+## 9. Domain packs
 
 The core knows no industry. Industry knowledge comes from `domain_packs/` and the `domain-*` skills. Current pack: `domain-otc-channel` (over-the-counter / consumer health channel).
 - A pack is loaded only after `business_context` and `unit_of_analysis` are confirmed and the human says "yes, this is an OTC channel project".
 - A pack produces hypotheses and questions. It cannot relax core rules (pre-registration, status caps, human gates).
 - Never use a company, brand or product name you have not seen in the project.
 
-## 9. Harness development mode
+## 10. Harness development mode
 
 `src/`, `config/`, `.claude/`, `claude_config/`, `tests/` and this file are protected during investigations. Developing the harness is a human decision: start the session with `PMI_DEV_MODE=1`. Even in this mode, original projects and evidence files remain protected.
