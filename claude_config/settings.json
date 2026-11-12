@@ -75,7 +75,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|Read",
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash|PowerShell|Read",
         "hooks": [
           {
             "type": "command",
