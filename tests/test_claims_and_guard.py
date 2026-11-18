@@ -71,3 +71,39 @@ def test_guard_hook(harness, projects, pmi):
     still = _guard({"tool_name": "Write", "tool_input": {"file_path": str(target / "train.py")}},
                    harness, {"PMI_DEV_MODE": "1"})
     assert still.returncode == 2
+
+
+def _spellings(path: Path) -> list[str]:
+    """Every way a shell command may spell the same path on this OS."""
+    raw = str(path)
+    if os.name != "nt":
+        return [raw]
+    fwd = raw.replace("\\", "/")
+    return [raw, fwd, f"/{fwd[0].lower()}{fwd[2:]}"]          # C:\x, C:/x, /c/x (Git Bash)
+
+
+def test_guard_shell_path_spellings(harness, projects, pmi):
+    """Regression: writes to the original project slipped through when the path was not at the start of the
+    command or used a different spelling, and the PowerShell tool was not guarded at all."""
+    run_dir = _setup_retail(harness, projects, pmi)
+    target = projects / "retail_weekly"
+    (harness / ".claude").mkdir(exist_ok=True)
+    cases = []
+    for t in _spellings(target):
+        cases += [
+            ({"tool_name": "Bash", "tool_input": {"command": f"echo x > {t}/train.py"}}, 2),
+            ({"tool_name": "Bash", "tool_input": {"command": f'cd "{t}" && rm train.py'}}, 2),
+            ({"tool_name": "Bash", "tool_input": {"command": f"cat {t}/train.py"}}, 0),
+            ({"tool_name": "PowerShell", "tool_input": {"command": f'Set-Content -Path "{t}/train.py" -Value x'}}, 2),
+            ({"tool_name": "PowerShell", "tool_input": {"command": f'[IO.File]::WriteAllText("{t}/a.txt", "x")'}}, 2),
+            ({"tool_name": "PowerShell", "tool_input": {"command": f'Get-Content "{t}/train.py"'}}, 0),
+        ]
+    notes = run_dir / "notes" / "a.md"
+    cases += [
+        ({"tool_name": "PowerShell", "tool_input": {"command": f"Remove-Item {run_dir / 'ledger.sqlite'}"}}, 2),
+        ({"tool_name": "Bash", "tool_input": {"command": f"echo see https://example.com > {notes}"}}, 0),
+        ({"tool_name": "PowerShell", "tool_input": {"command": "pmi status"}}, 0),
+    ]
+    for payload, expected in cases:
+        r = _guard(payload, harness)
+        assert r.returncode == expected, (payload, r.stderr)

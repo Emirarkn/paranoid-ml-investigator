@@ -44,5 +44,11 @@ description: Present the audit result to the user. Generate pmi report (measurem
 3. `evidence-verifier` subagent for P1–P2 Verified/Simulated findings.
 4. `pmi integrity` → ok.
 
+## Prophecy layer (after the audit above)
+Hand the run to the `prophet` subagent. It writes `notes/prophecies.md` with the `prophecy` skill and must reach
+0 issues in `pmi check-claims runs/<id>/notes/prophecies.md`. Prophecies never enter `findings.md` or `report.md`.
+
 ## Closing message
 Keep it short: the short answer, the 3 most critical findings, the report path and the decisions expected from the human. Do not repeat the report content in the message.
+Last, under its own heading **Kehanetler (spekülatif)**: the three darkest prophecies, one line each with their
+basis (H-id or DAYANAKSIZ) and early warning sign, and the path to `notes/prophecies.md`.

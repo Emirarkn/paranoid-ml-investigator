@@ -226,7 +226,7 @@ def cmd_report(args):
 def cmd_check_claims(args):
     _, run, ledger = _ctx(args)
     from pmi.reporting.claims import check_claims
-    issues = check_claims(run, ledger, Path(args.file))
+    issues = check_claims(run, ledger, Path(args.file), args.mode)
     _out({"file": args.file, "issues": issues, "ok": not issues})
     return 0 if not issues else 1
 
@@ -323,6 +323,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("check-claims", help="audit an agent-written markdown file against the ledger")
     s.add_argument("file")
+    s.add_argument("--mode", choices=["auto", "findings", "prophecy"], default="auto",
+                   help="auto: prophecy rules for prophecies*.md, findings rules otherwise")
     s.set_defaults(fn=cmd_check_claims)
 
     s = sub.add_parser("checks", help="list structural checks")

@@ -17,6 +17,7 @@ A skeptical agent that independently audits ML/AI projects, plus the determinist
 - **Amplifies failure conditions, not errors:** missing data, outliers, distribution shift and stale features are scaled 1× → 2× → 3× → 5× of the measured base condition; reports the Error Amplification Factor and the threshold where the model becomes unacceptable.
 - **Lets only evidence count:** pre-registered decision rules, a tamper-evident hash-chained ledger, independent re-computation of every metric, and status caps (`Verified` / `Simulated` / `Suspected` / `Inconclusive` / `Rejected`).
 - **Audits itself:** a claim checker catches non-existent file:line references, unrun experiments, wrong numbers and overstated statuses in the agent's own write-ups.
+- **Prophesies, separately:** after the report, a `prophet` subagent writes `notes/prophecies.md`: dark, exaggerated worst-case consequence chains, each with its basis, assumptions, early warning sign and falsifier. The claim checker lets the drama through but still blocks changed facts, verification words and unrecorded numbers.
 
 ## Installation (Windows / PowerShell)
 ```powershell
@@ -64,8 +65,8 @@ The pack is activated only after the profile is confirmed and a human agrees. Se
 | `CLAUDE.md` | Agent constitution: character, hard rules, loop, human gates |
 | `claude_config/settings.json` → `.claude/` | Permission lists (allow/ask/deny) and hook definitions |
 | `claude_config/hooks/` | `guard.py` (write protection), `session_start.py` (resume where it left off) |
-| `claude_config/agents/` | 5 subagents: cartographer, skeptic, designer, verifier, claim-auditor |
-| `claude_config/skills/` | 9 skills: investigate, project-profiling, skeptical-hypotheses, experiment-design, failure-amplification, leakage-hunting, evidence-protocol, audit-reporting, domain-otc-channel |
+| `claude_config/agents/` | 6 subagents: cartographer, skeptic, designer, verifier, claim-auditor, prophet |
+| `claude_config/skills/` | 10 skills: investigate, project-profiling, skeptical-hypotheses, experiment-design, failure-amplification, leakage-hunting, evidence-protocol, audit-reporting, prophecy, domain-otc-channel |
 | `setup_claude_config.py` | Installs `claude_config/` → `.claude/` |
 | `config/` | `policy.yaml` (budget, network, timeout, evidence thresholds), `amplification.yaml` |
 | `src/pmi/` | Harness |

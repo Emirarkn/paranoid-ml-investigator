@@ -8,7 +8,8 @@ Blocks (exit code 2, reason on stderr -> shown to the agent):
     artifacts/**, scan/**  — these are written by `pmi` only
   * writes to harness files (src/, config/, .claude/, claude_config/, tests/, CLAUDE.md) unless PMI_DEV_MODE=1
   * reading benchmark answer keys (_answer_key.json)
-  * Bash commands that combine a protected path with a write-like operation
+  * Bash and PowerShell commands that combine a protected path (in any spelling: C:\\x, C:/x, /c/x)
+    with a write-like operation
 
 This is a guard, not a sandbox: an indirect Bash write can slip through. The hash-based
 `pmi integrity` check (target, workspace copy, ledger chain) is the backstop.
@@ -30,8 +31,12 @@ WRITE_LIKE = re.compile(
     r"(>>?|\btee\b|\brm\b|\bdel\b|\bmv\b|\bcp\b|\bsed\s+-i|\bperl\s+-[a-z]*i|\bset-content\b|\badd-content\b|"
     r"\bout-file\b|\bremove-item\b|\bmove-item\b|\bcopy-item\b|\brename-item\b|\btruncate\b|\bunlink\b|"
     r"\bchmod\b|\bsqlite3\b|\bgit\s+(commit|checkout|reset|clean|stash|restore|rm|mv|apply|am|pull|merge|rebase)\b|"
+    r"\bnew-item\b|\bclear-content\b|\bwrite(all)?(text|bytes|lines)\b|\bappendall(text|lines)\b|"
     r"open\([^)]*['\"][wa]b?\+?['\"]|\.write_text\(|\.write_bytes\(|to_csv\(|to_parquet\(|to_excel\()",
     re.I)
+SHELL_TOOLS = ("Bash", "PowerShell")
+# A drive letter that starts a path anywhere in a text ("C:\x", "C:/x"); the lookbehind keeps URLs ("https://") intact.
+DRIVE = re.compile(r"(?<![A-Za-z0-9])([A-Za-z]):/")
 
 
 def norm(p: str) -> str:
@@ -40,6 +45,16 @@ def norm(p: str) -> str:
     if m:  # C:/x  ->  /c/x  (Git Bash form) so both spellings compare equal
         s = f"/{m.group(1).lower()}/{m.group(2)}"
     return s.lower() if os.name == "nt" or m else s
+
+
+def norm_command(cmd: str) -> str:
+    """Normalise every path spelling inside a shell command, not only a leading one.
+
+    `C:\\a\\b`, `C:/a/b` and `/c/a/b` all become `/c/a/b`, so a protected target matches however the
+    command spells it. On Windows the result is lower-cased, like `norm`.
+    """
+    s = DRIVE.sub(lambda m: f"/{m.group(1).lower()}/", cmd.replace("\\", "/"))
+    return s.lower() if os.name == "nt" else s
 
 
 def block(reason: str) -> None:
@@ -112,10 +127,9 @@ def main() -> None:
                 block(r)
         sys.exit(0)
 
-    if tool == "Bash":
+    if tool in SHELL_TOOLS:
         cmd = ti.get("command", "")
-        c = norm(cmd) if os.name == "nt" else cmd.replace("\\", "/")
-        c_low = c.lower()
+        c_low = norm_command(cmd).lower()
         if "_answer_key" in c_low:
             block("benchmark answer keys are hidden from the investigator.")
         if re.match(r"^\s*(python\s+-m\s+)?pmi\b", cmd) and not WRITE_LIKE.search(cmd.split("pmi", 1)[1].replace("->", "")):
@@ -127,7 +141,7 @@ def main() -> None:
             protected += ["config/policy.yaml", "config/amplification.yaml", ".claude/", "claude_config/", "src/pmi"]
         if writes:
             for t in protected:
-                if t.lower() in c_low or t.lower() in norm(cmd):
+                if t.lower() in c_low:
                     block(f"command writes near a protected location ({t}). Use pmi commands; originals and "
                           "evidence are read-only.")
         sys.exit(0)
